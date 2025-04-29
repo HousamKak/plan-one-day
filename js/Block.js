@@ -333,7 +333,6 @@ export class Block {
 
     this.labelArrow.style.backgroundColor = lighterColor;
     this.labelArrow.style.borderColor = lighterColor;
-    this.labelArrow.style.display = 'block';
   }
   
   /**
