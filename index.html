@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24-Hour Visual Day Planner</title>
+    <style>
+        :root {
+            --primary-color: #3a86ff;
+            --background-color: #f8f9fa;
+            --timeline-color: #dee2e6;
+            --text-color: #212529;
+            --block-colors: #ff006e, #8338ec, #3a86ff, #00c3a3, #fb5607, #ffbe0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-weight: 300;
+            color: var(--text-color);
+            font-size: 2.5rem;
+        }
+
+        .controls {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        input, button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            font-size: 1rem;
+        }
+
+        input {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .duration-input {
+            width: 100px;
+            flex: 0 0 auto;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .timeline-container {
+            position: relative;
+            padding: 2rem 0;
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+
+        .timeline {
+            height: 4px;
+            background-color: var(--timeline-color);
+            position: relative;
+            margin: 0 auto;
+            min-width: 100%;
+        }
+
+        .hour-markers {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+            position: relative;
+        }
+
+        .hour-marker {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: translateX(-50%);
+        }
+
+        .hour-marker::before {
+            content: '';
+            height: 10px;
+            width: 2px;
+            background-color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .hour-label {
+            font-size: 0.8rem;
+            color: var(--text-color);
+            white-space: nowrap;
+        }
+
+        .blocks-container {
+            position: relative;
+            height: 80px;
+            margin-top: 2rem;
+        }
+
+        .block {
+            position: absolute;
+            height: 60px;
+            top: 0;
+            border-radius: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0.5rem;
+            color: white;
+            user-select: none;
+            cursor: move;
+            transition: box-shadow 0.3s, transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .block:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .block-dragging {
+            opacity: 0.8;
+            z-index: 10;
+        }
+
+        .block-label {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .block-time {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+
+        .resize-handle {
+            position: absolute;
+            width: 10px;
+            height: 100%;
+            top: 0;
+            right: 0;
+            cursor: e-resize;
+        }
+
+        .delete-block {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 16px;
+            height: 16px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            cursor: pointer;
+        }
+
+        .block:hover .delete-block {
+            opacity: 1;
+        }
+
+        .instructions {
+            text-align: center;
+            color: #6c757d;
+            margin-top: 2rem;
+            max-width: 800px;
+            line-height: 1.6;
+        }
+
+        .hour-grid {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            display: flex;
+            pointer-events: none;
+        }
+
+        .hour-grid-line {
+            flex: 1;
+            border-right: 1px dashed rgba(0, 0, 0, 0.1);
+            height: 100%;
+        }
+
+        .hour-grid-line:last-child {
+            border-right: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            input, button {
+                width: 100%;
+            }
+        }
+
+        .block-actions {
+            position: absolute;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            padding: 0.5rem;
+            z-index: 100;
+            display: none;
+        }
+
+        .block-actions button {
+            width: 100%;
+            margin-bottom: 0.25rem;
+            text-align: left;
+            background: none;
+            color: var(--text-color);
+        }
+
+        .block-actions button:hover {
+            background: #f1f1f1;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>24-Hour Visual Day Planner</h1>
+        
+        <div class="controls">
+            <input type="text" id="block-name" placeholder="Block name" aria-label="Block name">
+            <input type="number" id="block-duration" class="duration-input" placeholder="Hours" min="0.5" max="24" step="0.5" value="1" aria-label="Duration in hours">
+            <button id="add-block">Add Block</button>
+        </div>
+        
+        <div class="timeline-container">
+            <div class="timeline"></div>
+            <div class="hour-markers" id="hour-markers"></div>
+            <div class="hour-grid" id="hour-grid"></div>
+            <div class="blocks-container" id="blocks-container"></div>
+        </div>
+        
+        <div class="instructions">
+            <p>Drag blocks to reposition • Drag right edge to resize • Click a block for more options</p>
+        </div>
+    </div>
+
+    <div class="block-actions" id="block-actions">
+        <button id="edit-block">✏️ Edit</button>
+        <button id="duplicate-block">🔄 Duplicate</button>
+        <button id="delete-block">🗑️ Delete</button>
+    </div>
+
+    <script>
+        /**
+         * @typedef {Object} Block
+         * @property {string} id - Unique identifier
+         * @property {string} name - Display name
+         * @property {number} start - Start time in hours (0-24)
+         * @property {number} duration - Duration in hours
+         * @property {string} color - CSS color value
+         */
+
+        /**
+         * Day Planner Application
+         */
+        class DayPlanner {
+            /**
+             * Initialize the day planner
+             */
+            constructor() {
+                /** @type {Block[]} */
+                this.blocks = [];
+                
+                /** @type {number} */
+                this.totalHours = 24;
+                
+                /** @type {string[]} */
+                this.colors = [
+                    '#ff006e', '#8338ec', '#3a86ff', 
+                    '#00c3a3', '#fb5607', '#ffbe0b'
+                ];
+                
+                this.isDragging = false;
+                this.isResizing = false;
+                this.activeBlock = null;
+                this.startX = 0;
+                this.startLeft = 0;
+                this.startWidth = 0;
+                this.containerWidth = 0;
+                
+                // DOM elements
+                this.timelineContainer = document.querySelector('.timeline-container');
+                this.blocksContainer = document.getElementById('blocks-container');
+                this.hourMarkers = document.getElementById('hour-markers');
+                this.hourGrid = document.getElementById('hour-grid');
+                this.blockNameInput = document.getElementById('block-name');
+                this.blockDurationInput = document.getElementById('block-duration');
+                this.addBlockButton = document.getElementById('add-block');
+                this.blockActions = document.getElementById('block-actions');
+                
+                // Initialize the timeline
+                this.initializeTimeline();
+                
+                // Add event listeners
+                this.addEventListeners();
+                
+                // Initial setup
+                this.updateContainerWidth();
+                window.addEventListener('resize', () => this.updateContainerWidth());
+            }
+            
+            /**
+             * Initialize the timeline with hour markers
+             */
+            initializeTimeline() {
+                // Create hour markers
+                for (let i = 0; i <= this.totalHours; i++) {
+                    const marker = document.createElement('div');
+                    marker.className = 'hour-marker';
+                    marker.style.left = `${(i / this.totalHours) * 100}%`;
+                    
+                    const label = document.createElement('span');
+                    label.className = 'hour-label';
+                    label.textContent = `${i}h`;
+                    
+                    marker.appendChild(label);
+                    this.hourMarkers.appendChild(marker);
+                }
+                
+                // Create hour grid lines
+                for (let i = 0; i < this.totalHours; i++) {
+                    const gridLine = document.createElement('div');
+                    gridLine.className = 'hour-grid-line';
+                    this.hourGrid.appendChild(gridLine);
+                }
+            }
+            
+            /**
+             * Update the container width based on current viewport
+             */
+            updateContainerWidth() {
+                this.containerWidth = this.timelineContainer.offsetWidth;
+            }
+            
+            /**
+             * Add all required event listeners
+             */
+            addEventListeners() {
+                // Add block button
+                this.addBlockButton.addEventListener('click', () => this.addNewBlock());
+                
+                // Mouse events for drag and resize
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                document.addEventListener('mouseup', () => this.handleMouseUp());
+                
+                // Touch events for mobile
+                document.addEventListener('touchmove', (e) => {
+                    if (e.touches.length > 0) {
+                        const touch = e.touches[0];
+                        this.handleMouseMove({ clientX: touch.clientX });
+                    }
+                    if (this.isDragging || this.isResizing) {
+                        e.preventDefault(); // Prevent scrolling while dragging
+                    }
+                }, { passive: false });
+                
+                document.addEventListener('touchend', () => this.handleMouseUp());
+                
+                // Block action buttons
+                document.getElementById('edit-block').addEventListener('click', () => this.editActiveBlock());
+                document.getElementById('duplicate-block').addEventListener('click', () => this.duplicateActiveBlock());
+                document.getElementById('delete-block').addEventListener('click', () => this.deleteActiveBlock());
+                
+                // Close block actions menu when clicking elsewhere
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.block') && !e.target.closest('.block-actions')) {
+                        this.hideBlockActions();
+                    }
+                });
+            }
+            
+            /**
+             * Add a new block to the timeline
+             */
+            addNewBlock() {
+                const name = this.blockNameInput.value.trim() || 'Untitled Block';
+                const duration = parseFloat(this.blockDurationInput.value) || 1;
+                
+                // Validate duration
+                if (duration <= 0 || duration > this.totalHours) {
+                    alert(`Duration must be between 0.5 and ${this.totalHours} hours`);
+                    return;
+                }
+                
+                // Find first available position
+                let start = 0;
+                while (this.isPositionOccupied(start, duration)) {
+                    start += 0.5;
+                    if (start + duration > this.totalHours) {
+                        start = 0;
+                        break;
+                    }
+                }
+                
+                /** @type {Block} */
+                const newBlock = {
+                    id: 'block_' + Date.now(),
+                    name,
+                    start,
+                    duration,
+                    color: this.getRandomColor()
+                };
+                
+                this.blocks.push(newBlock);
+                this.renderBlock(newBlock);
+                
+                // Clear inputs
+                this.blockNameInput.value = '';
+                this.blockDurationInput.value = '1';
+                this.blockNameInput.focus();
+            }
+            
+            /**
+             * Check if a position is already occupied by another block
+             * @param {number} start - Start time in hours
+             * @param {number} duration - Duration in hours
+             * @returns {boolean} - True if position is occupied
+             */
+            isPositionOccupied(start, duration) {
+                const end = start + duration;
+                return this.blocks.some(block => {
+                    const blockEnd = block.start + block.duration;
+                    return (start < blockEnd && end > block.start);
+                });
+            }
+            
+            /**
+             * Render a block on the timeline
+             * @param {Block} block - The block to render
+             */
+            renderBlock(block) {
+                const blockEl = document.createElement('div');
+                blockEl.className = 'block';
+                blockEl.id = block.id;
+                blockEl.style.backgroundColor = block.color;
+                blockEl.style.left = `${(block.start / this.totalHours) * 100}%`;
+                blockEl.style.width = `${(block.duration / this.totalHours) * 100}%`;
+                
+                // Block content
+                const label = document.createElement('div');
+                label.className = 'block-label';
+                label.textContent = block.name;
+                
+                const time = document.createElement('div');
+                time.className = 'block-time';
+                time.textContent = this.formatBlockTime(block);
+                
+                blockEl.appendChild(label);
+                blockEl.appendChild(time);
+                
+                // Resize handle
+                const resizeHandle = document.createElement('div');
+                resizeHandle.className = 'resize-handle';
+                blockEl.appendChild(resizeHandle);
+                
+                // Event listeners
+                blockEl.addEventListener('mousedown', (e) => this.handleBlockMouseDown(e, block.id));
+                blockEl.addEventListener('touchstart', (e) => {
+                    if (e.touches.length > 0) {
+                        const touch = e.touches[0];
+                        this.handleBlockMouseDown({ 
+                            clientX: touch.clientX, 
+                            target: e.target,
+                            preventDefault: () => e.preventDefault()
+                        }, block.id);
+                    }
+                }, { passive: false });
+                
+                resizeHandle.addEventListener('mousedown', (e) => {
+                    this.handleResizeMouseDown(e, block.id);
+                });
+                
+                resizeHandle.addEventListener('touchstart', (e) => {
+                    if (e.touches.length > 0) {
+                        const touch = e.touches[0];
+                        this.handleResizeMouseDown({ 
+                            clientX: touch.clientX, 
+                            preventDefault: () => e.preventDefault(),
+                            stopPropagation: () => e.stopPropagation()
+                        }, block.id);
+                    }
+                }, { passive: false });
+                
+                // Click for actions menu
+                blockEl.addEventListener('click', (e) => {
+                    if (!this.isDragging && !this.isResizing) {
+                        this.showBlockActions(e, block.id);
+                    }
+                });
+                
+                this.blocksContainer.appendChild(blockEl);
+            }
+            
+            /**
+             * Format the time display for a block
+             * @param {Block} block - The block
+             * @returns {string} - Formatted time string
+             */
+            formatBlockTime(block) {
+                const startHour = Math.floor(block.start);
+                const startMin = Math.round((block.start - startHour) * 60);
+                const endTime = block.start + block.duration;
+                const endHour = Math.floor(endTime);
+                const endMin = Math.round((endTime - endHour) * 60);
+                
+                return `${startHour.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')} - ${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
+            }
+            
+            /**
+             * Handle mouse down on a block (start dragging)
+             * @param {MouseEvent} e - Mouse event
+             * @param {string} blockId - ID of the block
+             */
+            handleBlockMouseDown(e, blockId) {
+                // Ignore if clicking on resize handle
+                if (e.target.className === 'resize-handle' || 
+                    e.target.className === 'delete-block') {
+                    return;
+                }
+                
+                e.preventDefault();
+                
+                const blockEl = document.getElementById(blockId);
+                this.isDragging = true;
+                this.activeBlock = this.blocks.find(block => block.id === blockId);
+                
+                this.startX = e.clientX;
+                this.startLeft = blockEl.offsetLeft;
+                
+                blockEl.classList.add('block-dragging');
+            }
+            
+            /**
+             * Handle mouse down on resize handle
+             * @param {MouseEvent} e - Mouse event
+             * @param {string} blockId - ID of the block
+             */
+            handleResizeMouseDown(e, blockId) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const blockEl = document.getElementById(blockId);
+                this.isResizing = true;
+                this.activeBlock = this.blocks.find(block => block.id === blockId);
+                
+                this.startX = e.clientX;
+                this.startWidth = blockEl.offsetWidth;
+                
+                blockEl.classList.add('block-dragging');
+            }
+            
+            /**
+             * Handle mouse move for dragging or resizing
+             * @param {MouseEvent} e - Mouse event
+             */
+            handleMouseMove(e) {
+                if (!this.isDragging && !this.isResizing) return;
+                
+                const blockEl = document.getElementById(this.activeBlock.id);
+                const deltaX = e.clientX - this.startX;
+                
+                if (this.isDragging) {
+                    // Calculate new position
+                    let newLeft = this.startLeft + deltaX;
+                    
+                    // Constrain to timeline bounds
+                    if (newLeft < 0) newLeft = 0;
+                    if (newLeft > this.containerWidth - blockEl.offsetWidth) {
+                        newLeft = this.containerWidth - blockEl.offsetWidth;
+                    }
+                    
+                    // Update visual position
+                    blockEl.style.left = `${newLeft}px`;
+                } else if (this.isResizing) {
+                    // Calculate new width
+                    let newWidth = this.startWidth + deltaX;
+                    
+                    // Constrain minimum width (0.5 hours)
+                    const minWidth = (0.5 / this.totalHours) * this.containerWidth;
+                    if (newWidth < minWidth) newWidth = minWidth;
+                    
+                    // Constrain maximum width (remaining space)
+                    const maxWidth = this.containerWidth - this.startLeft;
+                    if (newWidth > maxWidth) newWidth = maxWidth;
+                    
+                    // Update visual width
+                    blockEl.style.width = `${newWidth}px`;
+                }
+            }
+            
+            /**
+             * Handle mouse up (end dragging or resizing)
+             */
+            handleMouseUp() {
+                if (!this.isDragging && !this.isResizing) return;
+                
+                const blockEl = document.getElementById(this.activeBlock.id);
+                blockEl.classList.remove('block-dragging');
+                
+                // Calculate new values based on percentages
+                const newStart = (blockEl.offsetLeft / this.containerWidth) * this.totalHours;
+                
+                if (this.isDragging) {
+                    // Update block data
+                    this.activeBlock.start = this.roundToNearestHalf(newStart);
+                } else if (this.isResizing) {
+                    // Calculate new duration
+                    const newDuration = (blockEl.offsetWidth / this.containerWidth) * this.totalHours;
+                    this.activeBlock.duration = this.roundToNearestHalf(newDuration);
+                }
+                
+                // Reset drag/resize state
+                this.isDragging = false;
+                this.isResizing = false;
+                
+                // Update block's visual position and time
+                this.updateBlockVisual(this.activeBlock);
+                this.activeBlock = null;
+            }
+            
+            /**
+             * Round a number to the nearest 0.5
+             * @param {number} value - Number to round
+             * @returns {number} - Rounded number
+             */
+            roundToNearestHalf(value) {
+                return Math.round(value * 2) / 2;
+            }
+            
+            /**
+             * Update a block's visual representation
+             * @param {Block} block - Block to update
+             */
+            updateBlockVisual(block) {
+                const blockEl = document.getElementById(block.id);
+                if (!blockEl) return;
+                
+                // Update position and size
+                blockEl.style.left = `${(block.start / this.totalHours) * 100}%`;
+                blockEl.style.width = `${(block.duration / this.totalHours) * 100}%`;
+                
+                // Update time display
+                const timeEl = blockEl.querySelector('.block-time');
+                timeEl.textContent = this.formatBlockTime(block);
+                
+                // Update label display
+                const labelEl = blockEl.querySelector('.block-label');
+                labelEl.textContent = block.name;
+            }
+            
+            /**
+             * Get a random color for a new block
+             * @returns {string} - CSS color
+             */
+            getRandomColor() {
+                return this.colors[Math.floor(Math.random() * this.colors.length)];
+            }
+            
+            /**
+             * Show action menu for a block
+             * @param {MouseEvent} e - Mouse event
+             * @param {string} blockId - Block ID
+             */
+            showBlockActions(e, blockId) {
+                this.activeBlock = this.blocks.find(block => block.id === blockId);
+                
+                // Position the menu next to the block
+                const rect = e.target.closest('.block').getBoundingClientRect();
+                this.blockActions.style.top = `${rect.bottom + 5}px`;
+                this.blockActions.style.left = `${rect.left + 10}px`;
+                this.blockActions.style.display = 'block';
+            }
+            
+            /**
+             * Hide the block actions menu
+             */
+            hideBlockActions() {
+                this.blockActions.style.display = 'none';
+            }
+            
+            /**
+             * Edit the active block
+             */
+            editActiveBlock() {
+                if (!this.activeBlock) return;
+                
+                const newName = prompt('Enter new name:', this.activeBlock.name);
+                if (newName !== null) {
+                    this.activeBlock.name = newName;
+                    
+                    const newDuration = prompt('Enter new duration (hours):', this.activeBlock.duration);
+                    if (newDuration !== null) {
+                        const duration = parseFloat(newDuration);
+                        if (!isNaN(duration) && duration > 0 && duration <= this.totalHours) {
+                            this.activeBlock.duration = duration;
+                        }
+                    }
+                    
+                    this.updateBlockVisual(this.activeBlock);
+                }
+                
+                this.hideBlockActions();
+            }
+            
+            /**
+             * Duplicate the active block
+             */
+            duplicateActiveBlock() {
+                if (!this.activeBlock) return;
+                
+                /** @type {Block} */
+                const newBlock = {
+                    id: 'block_' + Date.now(),
+                    name: this.activeBlock.name + ' (Copy)',
+                    start: this.activeBlock.start + 0.5,
+                    duration: this.activeBlock.duration,
+                    color: this.activeBlock.color
+                };
+                
+                // Adjust start time if needed
+                if (newBlock.start + newBlock.duration > this.totalHours) {
+                    newBlock.start = 0;
+                }
+                
+                this.blocks.push(newBlock);
+                this.renderBlock(newBlock);
+                
+                this.hideBlockActions();
+            }
+            
+            /**
+             * Delete the active block
+             */
+            deleteActiveBlock() {
+                if (!this.activeBlock) return;
+                
+                // Remove from DOM
+                const blockEl = document.getElementById(this.activeBlock.id);
+                if (blockEl) blockEl.remove();
+                
+                // Remove from data
+                this.blocks = this.blocks.filter(block => block.id !== this.activeBlock.id);
+                
+                this.hideBlockActions();
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new DayPlanner();
+        });
+    </script>
+</body>
+</html>
