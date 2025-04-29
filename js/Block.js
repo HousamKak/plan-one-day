@@ -190,21 +190,6 @@ export class Block {
     titleElement.appendChild(titleSpan);
     titleElement.appendChild(timeSpan);
     
-    if (this.labelArrow) {
-      this.labelArrow.innerHTML = '';
-      
-      const labelTitleSpan = document.createElement('span');
-      labelTitleSpan.className = 'block-title-text';
-      labelTitleSpan.textContent = this.title;
-      
-      const labelTimeSpan = document.createElement('span');
-      labelTimeSpan.className = 'block-time-text';
-      labelTimeSpan.textContent = `${startTime} - ${endTime}`;
-      
-      this.labelArrow.appendChild(labelTitleSpan);
-      this.labelArrow.appendChild(labelTimeSpan);
-    }
-    
     if (this.wrapElement) {
       const wrapTitleElement = this.wrapElement.querySelector('.block-title');
       wrapTitleElement.innerHTML = '';
@@ -230,15 +215,45 @@ export class Block {
     const blockWidth = this.element.offsetWidth;
     const titleWidth = titleElement.scrollWidth;
     
+    // Format time function
+    const formatTime = (hours) => {
+      const h = Math.floor(hours);
+      const m = Math.round((hours - h) * 60);
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    };
+    
+    const startTime = formatTime(this.start);
+    const endTime = formatTime((this.start + this.duration) % 24);
+    
     // Create or update label arrow for narrow blocks
     if (blockWidth < titleWidth + 12) {
       titleElement.style.opacity = '0';
       
       if (!this.labelArrow) {
+        // Create new label arrow
         this.labelArrow = document.createElement('div');
         this.labelArrow.classList.add('label-arrow');
-        this.labelArrow.innerHTML = titleElement.innerHTML;
+        
+        // Create a structured content with proper hierarchy
+        const labelTitle = document.createElement('span');
+        labelTitle.className = 'block-title-text';
+        labelTitle.textContent = this.title;
+        
+        const labelTime = document.createElement('span');
+        labelTime.className = 'block-time-text';
+        labelTime.textContent = `${startTime} - ${endTime}`;
+        
+        this.labelArrow.appendChild(labelTitle);
+        this.labelArrow.appendChild(labelTime);
+        
         this.timeline.gridElement.appendChild(this.labelArrow);
+      } else {
+        // Update existing label arrow
+        const labelTitle = this.labelArrow.querySelector('.block-title-text');
+        const labelTime = this.labelArrow.querySelector('.block-time-text');
+        
+        if (labelTitle) labelTitle.textContent = this.title;
+        if (labelTime) labelTime.textContent = `${startTime} - ${endTime}`;
       }
       
       // Position the label arrow above the block center
@@ -571,7 +586,22 @@ export class Block {
     if (data.title !== undefined) this.title = data.title;
     if (data.start !== undefined) this.start = data.start;
     if (data.duration !== undefined) this.duration = data.duration;
-    if (data.color !== undefined) this.color = data.color;
+    if (data.color !== undefined) {
+      this.color = data.color;
+      // Fix: Explicitly update element background color
+      this.element.style.backgroundColor = this.color;
+      
+      // Update wrap element if it exists
+      if (this.wrapElement) {
+        this.wrapElement.style.backgroundColor = this.color;
+      }
+      
+      // Update label arrow if it exists
+      if (this.labelArrow) {
+        this.labelArrow.style.backgroundColor = this.color;
+        this.labelArrow.style.borderColor = this.color;
+      }
+    }
     
     this.updatePosition();
   }
