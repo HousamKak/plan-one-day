@@ -19,38 +19,54 @@ function init() {
   const saveButton = document.querySelector('.btn-save');
   const presetSelect = document.getElementById('preset-select');
   const presetContainer = document.getElementById('preset-container');
-  
+  const nightToggle = document.getElementById('night-mode-toggle');
+
+  // Apply saved theme on load
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  nightToggle.setAttribute('aria-pressed', savedTheme === 'dark');
+
+  // Toggle handler
+  nightToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    nightToggle.setAttribute('aria-pressed', next === 'dark');
+    showToast(next[0].toUpperCase() + next.slice(1) + ' mode');
+  });
+
   // Initialize storage
   const storage = new Storage();
-  
+
   // Initialize timeline
   const timeline = new Timeline(gridElement);
-  
+
   // Load initial state if available
   const initialState = storage.initialize();
   if (initialState) {
     timeline.deserialize(initialState);
-    
+
     // Set toggle states
     wrapToggle.setAttribute('aria-pressed', initialState.isWrappingEnabled ? 'true' : 'false');
     overlapToggle.setAttribute('aria-pressed', initialState.allowOverlap ? 'true' : 'false');
     timeFormatToggle.setAttribute('aria-pressed', !initialState.use24HourFormat ? 'true' : 'false');
   }
-  
+
   // Event listeners for toolbar controls
-  
+
   // Clear button
   clearButton.addEventListener('click', () => {
     if (confirm('Are you sure you want to clear the timeline?')) {
       timeline.clearTimeline();
     }
   });
-  
+
   // Shuffle button
   shuffleButton.addEventListener('click', () => {
     timeline.shuffleBlocks();
   });
-  
+
   // Wrap toggle
   wrapToggle.addEventListener('click', () => {
     const isCurrentlyEnabled = wrapToggle.getAttribute('aria-pressed') === 'true';
@@ -61,7 +77,7 @@ function init() {
     wrapToggle.style.backgroundColor = newState ? '6c757d' : 'f0f0f3';
     timeline.setWrappingEnabled(newState);
   });
-  
+
   // Overlap toggle
   overlapToggle.addEventListener('click', () => {
     const isCurrentlyEnabled = overlapToggle.getAttribute('aria-pressed') === 'true';
@@ -72,21 +88,21 @@ function init() {
     overlapToggle.style.backgroundColor = newState ? '6c757d' : 'f0f0f3';
     timeline.setOverlapAllowed(newState);
   });
-  
+
   // Time format toggle (12h/24h)
   timeFormatToggle.addEventListener('click', () => {
     const isCurrently12Hour = timeFormatToggle.getAttribute('aria-pressed') === 'true';
     const newState = !isCurrently12Hour;
-    
+
     timeFormatToggle.setAttribute('aria-pressed', newState ? 'true' : 'false');
     timeline.setTimeFormat(!newState); // true for 24h, false for 12h
   });
-  
+
   // Save preset button
   saveButton.addEventListener('click', () => {
     promptForPresetName(timeline, storage);
   });
-  
+
   // Load preset select
   presetSelect.addEventListener('change', () => {
     const selectedValue = presetSelect.value;
@@ -95,16 +111,16 @@ function init() {
       presetSelect.value = ''; // Reset select to default
     }
   });
-  
+
   // Listen for preset updates to add delete buttons
   document.addEventListener('presets:updated', (event) => {
     updatePresetsWithDeleteButtons(event.detail.presets, timeline, storage);
   });
-  
+
   // Trigger initial population of preset UI with delete buttons
   const initialPresets = storage.getPresets();
   updatePresetsWithDeleteButtons(initialPresets, timeline, storage);
-  
+
   // Initialize keyboard a11y focus trap in modals
   initializeModalKeyboardHandling();
 }
@@ -116,10 +132,10 @@ function init() {
  */
 function promptForPresetName(timeline, storage) {
   const presetName = prompt('Enter a name for this preset:');
-  
+
   if (presetName) {
     const timelineData = timeline.serialize();
-    
+
     if (storage.savePreset(presetName, timelineData)) {
       showToast(`Preset "${presetName}" saved`);
     } else {
@@ -136,15 +152,15 @@ function promptForPresetName(timeline, storage) {
  */
 function updatePresetsWithDeleteButtons(presets, timeline, storage) {
   if (!presets || !Array.isArray(presets)) return;
-  
+
   // Get the DOM elements
   const presetContainer = document.getElementById('preset-container');
   const presetSelect = document.getElementById('preset-select');
-  
+
   // Create a custom dropdown with delete buttons
   let customContainer = document.querySelector('.custom-preset-container');
   let presetButton = document.querySelector('.preset-button');
-  
+
   if (!customContainer) {
     // Create a container for the custom dropdown
     customContainer = document.createElement('div');
@@ -162,10 +178,10 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     // Only show scrollbar when needed (after 3 items)
     customContainer.style.overflowY = presets.length > 3 ? 'auto' : 'hidden';
     customContainer.style.display = 'none';
-    
+
     // Add it to the preset container
     presetContainer.appendChild(customContainer);
-    
+
     // Replace select with a button that shows the custom dropdown
     presetButton = document.createElement('button');
     presetButton.className = 'preset-button';
@@ -177,18 +193,18 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     presetButton.style.backgroundColor = 'var(--neumorph-bg)';
     presetButton.style.cursor = 'pointer';
     presetButton.textContent = 'Load'; // Simplified label
-    
+
     // Hide the original select and insert the button
     presetSelect.style.display = 'none';
     presetContainer.insertBefore(presetButton, presetSelect);
-    
+
     // Button click handler
     presetButton.addEventListener('click', (e) => {
       e.stopPropagation();
       const isVisible = customContainer.style.display === 'block';
       customContainer.style.display = isVisible ? 'none' : 'block';
     });
-    
+
     // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
       if (!presetContainer.contains(e.target)) {
@@ -199,10 +215,10 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     // Update scrollbar visibility based on item count
     customContainer.style.overflowY = presets.length > 3 ? 'auto' : 'hidden';
   }
-  
+
   // Clear existing items
   customContainer.innerHTML = '';
-  
+
   // Add "no presets" message if empty
   if (presets.length === 0) {
     const noPresets = document.createElement('div');
@@ -213,7 +229,7 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     customContainer.appendChild(noPresets);
     return;
   }
-  
+
   // Add items for each preset
   presets.forEach(preset => {
     const item = document.createElement('div');
@@ -226,12 +242,12 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     item.style.borderBottom = '1px solid var(--border-color)';
     item.style.backgroundColor = 'var(--neumorph-bg)';
     item.style.transition = 'all var(--transition-speed) ease';
-    
+
     // Preset name
     const nameSpan = document.createElement('span');
     nameSpan.textContent = preset.name;
     item.appendChild(nameSpan);
-    
+
     // Delete button
     const deleteButton = document.createElement('button');
     deleteButton.className = 'preset-delete';
@@ -241,12 +257,12 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     deleteButton.style.color = 'var(--error-color)';
     deleteButton.style.cursor = 'pointer';
     deleteButton.style.padding = '0.25rem';
-    
+
     // Add trash icon
     const trashTemplate = document.getElementById('trash-icon-template');
     const trashIcon = trashTemplate.content.cloneNode(true).querySelector('svg');
     deleteButton.appendChild(trashIcon);
-    
+
     // Add delete event
     deleteButton.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -262,18 +278,18 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
         }
       }
     });
-    
+
     item.appendChild(deleteButton);
-    
+
     // Add neomorphic hover effect
     item.addEventListener('mouseenter', () => {
       item.style.backgroundColor = 'var(--neumorph-light)';
     });
-    
+
     item.addEventListener('mouseleave', () => {
       item.style.backgroundColor = 'var(--neumorph-bg)';
     });
-    
+
     // Add click event to load preset
     item.addEventListener('click', (e) => {
       if (e.target !== deleteButton && !deleteButton.contains(e.target)) {
@@ -281,7 +297,7 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
         customContainer.style.display = 'none';
       }
     });
-    
+
     customContainer.appendChild(item);
   });
 }
@@ -294,15 +310,15 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
  */
 function loadPreset(name, timeline, storage) {
   const presetData = storage.loadPreset(name);
-  
+
   if (presetData) {
     timeline.deserialize(presetData);
-    
+
     // Update toggle states to match loaded preset
     document.getElementById('wrap-toggle').setAttribute('aria-pressed', presetData.isWrappingEnabled ? 'true' : 'false');
     document.getElementById('overlap-toggle').setAttribute('aria-pressed', presetData.allowOverlap ? 'true' : 'false');
     document.getElementById('time-format-toggle').setAttribute('aria-pressed', !presetData.use24HourFormat ? 'true' : 'false');
-    
+
     showToast(`Preset "${name}" loaded`);
   } else {
     showToast('Error loading preset');
@@ -317,13 +333,13 @@ function showToast(message) {
   // Get template
   const template = document.getElementById('toast-template');
   const toast = template.content.cloneNode(true).querySelector('.toast');
-  
+
   // Set message
   toast.textContent = message;
-  
+
   // Add to DOM
   document.body.appendChild(toast);
-  
+
   // Remove after animation
   setTimeout(() => {
     if (toast.parentNode) {
@@ -346,7 +362,7 @@ function initializeModalKeyboardHandling() {
       });
     });
   });
-  
+
   // Start observing
   observer.observe(document.body, { childList: true });
 }
@@ -360,15 +376,15 @@ function setupModalKeyboardTrap(modal) {
   const focusableElements = modal.querySelectorAll(
     'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
   );
-  
+
   if (focusableElements.length === 0) return;
-  
+
   const firstElement = focusableElements[0];
   const lastElement = focusableElements[focusableElements.length - 1];
-  
+
   // Focus the first element
   firstElement.focus();
-  
+
   // Handle keyboard navigation
   modal.addEventListener('keydown', (e) => {
     // Close on Escape
@@ -376,7 +392,7 @@ function setupModalKeyboardTrap(modal) {
       document.body.removeChild(modal);
       return;
     }
-    
+
     // Tab trap
     if (e.key === 'Tab') {
       if (e.shiftKey && document.activeElement === firstElement) {

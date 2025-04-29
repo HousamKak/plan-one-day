@@ -738,3 +738,30 @@ h1 {
   box-shadow: var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-shadow-dark),
               calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-light);
 }
+
+/* Dark theme overrides */
+:root[data-theme="dark"] {
+  --neumorph-bg: #1e1e1e;
+  --neumorph-light: rgba(60, 60, 60, 0.8);
+  --neumorph-shadow-dark: rgba(0, 0, 0, 0.6);
+  --text-color: #e0e0e0;
+  --light-text: #a0a0a0;
+  --border-color: #3a3a3a;
+  --bg-color: #121212;
+  --modal-bg: #2c2c2c;
+  --timeline-line-color: #444;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Ensure toggled button stands out in dark mode */
+.btn-night[aria-pressed="true"] {
+  color: #ffd369;
+  background-color: #333;
+  box-shadow:
+    inset var(--neumorph-shadow-distance) var(--neumorph-shadow-distance)
+      calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-dark),
+    inset calc(-1 * var(--neumorph-shadow-distance))
+      calc(-1 * var(--neumorph-shadow-distance))
+      calc(var(--neumorph-shadow-distance) * 1.5)
+      var(--neumorph-inset-shadow-light);
+}
