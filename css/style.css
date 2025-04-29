@@ -111,6 +111,7 @@ h1 {
   position: relative;
   height: 40px;
   width: 40px;
+  margin: 0 4px;
 }
 
 .toolbar button:hover {
@@ -130,67 +131,31 @@ h1 {
   height: 1.25rem;
 }
 
-.wrap-toggle,
-.overlap-toggle {
-  display: flex;
-  align-items: center;
-}
-
-.wrap-toggle label,
-.overlap-toggle label {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  cursor: pointer;
-  color: var(--light-text);
-}
-
-.wrap-toggle input[type="checkbox"],
-.overlap-toggle input[type="checkbox"] {
-  appearance: none;
-  width: 3rem;
-  height: 1.5rem;
-  background-color: var(--neumorph-bg);
-  border-radius: 1rem;
-  position: relative;
-  cursor: pointer;
-  transition: all var(--transition-speed) ease;
-  box-shadow: 
-    inset var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
-    calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-dark),
-    inset calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
-    calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-light);
-}
-
-.wrap-toggle input[type="checkbox"]::before,
-.overlap-toggle input[type="checkbox"]::before {
-  content: "";
+.tooltip {
   position: absolute;
-  width: 1.2rem;
-  height: 1.2rem;
-  border-radius: 50%;
-  background-color: var(--neumorph-bg);
-  top: 0.15rem;
-  left: 0.15rem;
-  transition: transform var(--transition-speed) ease;
-  box-shadow: 
-    var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
-    calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-shadow-dark),
-    calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
-    calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-light);
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--text-color);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-speed) ease, visibility var(--transition-speed) ease;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 100;
+  margin-top: 5px;
 }
 
-.wrap-toggle input[type="checkbox"]:checked,
-.overlap-toggle input[type="checkbox"]:checked {
-  background-color: var(--neumorph-bg);
+.btn-toggle:hover .tooltip {
+  opacity: 0.9;
+  visibility: visible;
 }
 
-.wrap-toggle input[type="checkbox"]:checked::before,
-.overlap-toggle input[type="checkbox"]:checked::before {
-  transform: translateX(1.5rem);
-  background-color: var(--accent-color);
-}
-
+/* Preset controls styles */
 .preset-controls {
   display: flex;
   align-items: center;
@@ -442,7 +407,7 @@ h1 {
   z-index: 5;
 }
 
-/* Enhanced label arrow styles */
+/* Enhanced label arrow styling */
 .label-arrow {
   position: absolute;
   background-color: inherit;
@@ -450,75 +415,72 @@ h1 {
   border-radius: 6px;
   font-size: 0.75rem;
   white-space: nowrap;
-  bottom: 95px;
+  bottom: 120px; /* Moved up to allow space for the connector */
   transform: translateX(-50%);
-  z-index: 20; /* Higher z-index to ensure it's above other elements */
+  z-index: 20;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   align-items: center;
-  pointer-events: none; /* Prevents the label from interfering with mouse events */
+  pointer-events: none;
   opacity: 0.95;
   transition: opacity 0.2s ease;
   animation: fadeInArrow 0.2s ease forwards;
 }
 
-.label-arrow:hover {
-  opacity: 1;
-}
-
-.label-arrow .block-title-text,
-.label-arrow .block-time-text {
-  color: white !important;
-  text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.2); /* Improves readability */
-}
-
-.label-arrow .block-title-text {
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-
-.label-arrow .block-time-text {
-  font-size: 0.7rem;
-}
-
+/* Connector line between label and block */
 .label-arrow::after {
   content: '';
   position: absolute;
-  bottom: -10px;
+  top: 100%;
   left: 50%;
-  transform: translateX(-50%);
-  border-width: 10px 8px 0 8px;
-  border-style: solid;
-  border-color: inherit;
-  border-bottom-color: transparent;
-  border-left-color: transparent;
-  border-right-color: transparent;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
-}
-
-.block:hover + .label-arrow,
-.label-arrow:hover {
-  z-index: 30;
-  opacity: 1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-/* Aligned label arrows */
-.label-arrow.align-left::after {
-  left: 15%;
-}
-
-.label-arrow.align-right::after {
-  left: 85%;
-}
-
-/* Wrap label arrows might need different positioning */
-.label-arrow.wrap-label-arrow {
+  width: 2px;
+  height: 20px; /* Length of the connector line */
   background-color: inherit;
-  border-color: inherit;
+  transform: translateX(-50%);
 }
 
+/* Arrow head */
+.label-arrow::before {
+  content: '';
+  position: absolute;
+  top: calc(100% + 20px); /* Position at the end of the connector line */
+  left: 50%;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid;
+  border-top-color: inherit;
+  transform: translateX(-50%);
+}
+
+/* Resize handles for both sides */
+.block-resize-handle-left {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  cursor: ew-resize;
+  z-index: 5;
+}
+
+.block-resize-handle-right {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  cursor: ew-resize;
+  z-index: 5;
+}
+
+/* Remove old toggle styles that are no longer needed */
+.wrap-toggle,
+.overlap-toggle {
+  display: none;
+}
+
+/* Adjusted animation for arrow */
 @keyframes fadeInArrow {
   from { 
     opacity: 0; 

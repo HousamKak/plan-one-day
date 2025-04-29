@@ -18,6 +18,7 @@ export class Timeline {
     this.blocks = new Map(); // Map of block id -> Block instance
     this.isWrappingEnabled = false;
     this.allowOverlap = false;
+    this.use24HourFormat = true; // Default to 24-hour format
     
     // Add a flag to track resize operations
     this.isResizeInProgress = false;
@@ -75,9 +76,37 @@ export class Timeline {
     for (let hour = 0; hour <= 24; hour++) {
       const hourMarker = document.createElement('div');
       hourMarker.classList.add('hour-marker');
-      hourMarker.textContent = `${hour}h`;
+      
+      // Format the hour based on current time format setting
+      if (this.use24HourFormat) {
+        hourMarker.textContent = `${hour}h`;
+      } else {
+        const hour12 = hour % 12 || 12; // Convert 0 to 12 for 12 AM
+        const period = hour >= 12 ? 'PM' : 'AM';
+        hourMarker.textContent = `${hour12}${period}`;
+      }
+      
       hoursContainer.appendChild(hourMarker);
     }
+  }
+  
+  /**
+   * Updates the time format and refreshes all displays
+   * @param {boolean} use24Hour - Whether to use 24-hour format
+   */
+  setTimeFormat(use24Hour) {
+    this.use24HourFormat = use24Hour;
+    
+    // Update hour markers
+    this.initializeHourMarkers();
+    
+    // Update all blocks
+    for (const block of this.blocks.values()) {
+      block.setTimeFormat(use24Hour);
+    }
+    
+    // Save current state
+    this.saveCurrentState();
   }
   
   /**
@@ -87,7 +116,8 @@ export class Timeline {
   handleGridClick(event) {
     // Ignore if clicked on a block or resize handle
     if (event.target.closest('.block') || 
-        event.target.closest('.block-resize-handle') ||
+        event.target.closest('.block-resize-handle-left') ||
+        event.target.closest('.block-resize-handle-right') ||
         this.isResizeInProgress) {
       return;
     }
@@ -211,7 +241,7 @@ export class Timeline {
     };
     
     // Create block instance
-    const block = new Block(completeData, this, this.isWrappingEnabled);
+    const block = new Block(completeData, this, this.isWrappingEnabled, this.use24HourFormat);
     
     // Check for conflicts if overlap is not allowed
     if (!this.allowOverlap && this.hasConflict(block)) {
@@ -251,7 +281,7 @@ export class Timeline {
         start: data.start !== undefined ? data.start : block.start,
         duration: data.duration !== undefined ? data.duration : block.duration,
         color: block.color
-      }, this, this.isWrappingEnabled);
+      }, this, this.isWrappingEnabled, this.use24HourFormat);
       
       // Check for conflicts excluding the block being updated
       const hasConflict = this.hasConflict(testBlock, id);
@@ -319,7 +349,7 @@ export class Timeline {
     }
     
     // Create a new block instance
-    const newBlock = new Block(newBlockData, this, this.isWrappingEnabled);
+    const newBlock = new Block(newBlockData, this, this.isWrappingEnabled, this.use24HourFormat);
     
     // Add to collection and DOM
     this.blocks.set(newId, newBlock);
@@ -420,7 +450,7 @@ export class Timeline {
       start: blockData.start,
       duration: blockData.duration,
       color: blockData.color
-    }, this, this.isWrappingEnabled);
+    }, this, this.isWrappingEnabled, this.use24HourFormat);
     
     // Check for conflicts
     if (this.hasConflict(testBlock)) {
@@ -572,7 +602,8 @@ export class Timeline {
     return {
       blocks,
       isWrappingEnabled: this.isWrappingEnabled,
-      allowOverlap: this.allowOverlap
+      allowOverlap: this.allowOverlap,
+      use24HourFormat: this.use24HourFormat
     };
   }
   
@@ -587,11 +618,15 @@ export class Timeline {
     // Set state properties
     this.isWrappingEnabled = data.isWrappingEnabled || false;
     this.allowOverlap = data.allowOverlap || false;
+    this.use24HourFormat = data.use24HourFormat !== undefined ? data.use24HourFormat : true;
+    
+    // Update hour markers for the current time format
+    this.initializeHourMarkers();
     
     // Add blocks
     if (data.blocks && Array.isArray(data.blocks)) {
       for (const blockData of data.blocks) {
-        const block = new Block(blockData, this, this.isWrappingEnabled);
+        const block = new Block(blockData, this, this.isWrappingEnabled, this.use24HourFormat);
         this.blocks.set(blockData.id, block);
         this.gridElement.appendChild(block.element);
       }

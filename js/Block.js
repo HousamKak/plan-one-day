@@ -12,8 +12,9 @@ export class Block {
    * @param {string} data.color - HSL color string
    * @param {Object} timeline - Timeline instance
    * @param {boolean} isWrappingEnabled - Whether wrap-around is enabled
+   * @param {boolean} use24HourFormat - Whether to use 24-hour time format
    */
-  constructor(data, timeline, isWrappingEnabled = false) {
+  constructor(data, timeline, isWrappingEnabled = false, use24HourFormat = true) {
     // Validate inputs
     if (!data || typeof data !== 'object') {
       throw new TypeError('Block data is required and must be an object');
@@ -50,6 +51,7 @@ export class Block {
     this.color = data.color;
     this.timeline = timeline;
     this.isWrappingEnabled = isWrappingEnabled;
+    this.use24HourFormat = use24HourFormat;
     
     // DOM elements
     this.element = null;
@@ -61,11 +63,16 @@ export class Block {
     this.dragStartX = 0;
     this.originalStart = 0;
     
-    // Resize state
+    // Resize state for right handle
     this.isResizing = false;
     this.resizeStartX = 0;
     this.originalWidth = 0;
     this.originalDuration = 0;
+    
+    // Resize state for left handle
+    this.isResizingLeft = false;
+    this.resizeLeftStartX = 0;
+    this.originalLeft = 0;
     
     // Create DOM element
     this.render();
@@ -87,10 +94,15 @@ export class Block {
       titleElement.classList.add('block-title');
       this.element.appendChild(titleElement);
       
-      // Create resize handle
-      const resizeHandle = document.createElement('div');
-      resizeHandle.classList.add('block-resize-handle');
-      this.element.appendChild(resizeHandle);
+      // Create left resize handle
+      const leftResizeHandle = document.createElement('div');
+      leftResizeHandle.classList.add('block-resize-handle-left');
+      this.element.appendChild(leftResizeHandle);
+      
+      // Create right resize handle
+      const rightResizeHandle = document.createElement('div');
+      rightResizeHandle.classList.add('block-resize-handle-right');
+      this.element.appendChild(rightResizeHandle);
       
       // Add event listeners
       this.addEventListeners();
@@ -170,7 +182,16 @@ export class Block {
     const formatTime = (hours) => {
       const h = Math.floor(hours);
       const m = Math.round((hours - h) * 60);
-      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+      
+      if (this.use24HourFormat) {
+        // 24-hour format: "09:30"
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+      } else {
+        // 12-hour format: "9:30 AM"
+        const period = h >= 12 ? 'PM' : 'AM';
+        const hour12 = h % 12 || 12; // Convert 0 to 12 for 12 AM
+        return `${hour12}:${m.toString().padStart(2, '0')} ${period}`;
+      }
     };
     
     const startTime = formatTime(this.start);
@@ -189,6 +210,21 @@ export class Block {
     
     titleElement.appendChild(titleSpan);
     titleElement.appendChild(timeSpan);
+    
+    if (this.labelArrow) {
+      this.labelArrow.innerHTML = '';
+      
+      const labelTitleSpan = document.createElement('span');
+      labelTitleSpan.className = 'block-title-text';
+      labelTitleSpan.textContent = this.title;
+      
+      const labelTimeSpan = document.createElement('span');
+      labelTimeSpan.className = 'block-time-text';
+      labelTimeSpan.textContent = `${startTime} - ${endTime}`;
+      
+      this.labelArrow.appendChild(labelTitleSpan);
+      this.labelArrow.appendChild(labelTimeSpan);
+    }
     
     if (this.wrapElement) {
       const wrapTitleElement = this.wrapElement.querySelector('.block-title');
@@ -215,45 +251,15 @@ export class Block {
     const blockWidth = this.element.offsetWidth;
     const titleWidth = titleElement.scrollWidth;
     
-    // Format time function
-    const formatTime = (hours) => {
-      const h = Math.floor(hours);
-      const m = Math.round((hours - h) * 60);
-      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-    };
-    
-    const startTime = formatTime(this.start);
-    const endTime = formatTime((this.start + this.duration) % 24);
-    
     // Create or update label arrow for narrow blocks
     if (blockWidth < titleWidth + 12) {
       titleElement.style.opacity = '0';
       
       if (!this.labelArrow) {
-        // Create new label arrow
         this.labelArrow = document.createElement('div');
         this.labelArrow.classList.add('label-arrow');
-        
-        // Create a structured content with proper hierarchy
-        const labelTitle = document.createElement('span');
-        labelTitle.className = 'block-title-text';
-        labelTitle.textContent = this.title;
-        
-        const labelTime = document.createElement('span');
-        labelTime.className = 'block-time-text';
-        labelTime.textContent = `${startTime} - ${endTime}`;
-        
-        this.labelArrow.appendChild(labelTitle);
-        this.labelArrow.appendChild(labelTime);
-        
+        this.labelArrow.innerHTML = titleElement.innerHTML;
         this.timeline.gridElement.appendChild(this.labelArrow);
-      } else {
-        // Update existing label arrow
-        const labelTitle = this.labelArrow.querySelector('.block-title-text');
-        const labelTime = this.labelArrow.querySelector('.block-time-text');
-        
-        if (labelTitle) labelTitle.textContent = this.title;
-        if (labelTime) labelTime.textContent = `${startTime} - ${endTime}`;
       }
       
       // Position the label arrow above the block center
@@ -283,9 +289,13 @@ export class Block {
     // Pointer events for drag
     this.element.addEventListener('pointerdown', this.handlePointerDown.bind(this));
     
-    // Resize handle events
-    const resizeHandle = this.element.querySelector('.block-resize-handle');
-    resizeHandle.addEventListener('pointerdown', this.handleResizeStart.bind(this));
+    // Resize handle events for right side
+    const rightResizeHandle = this.element.querySelector('.block-resize-handle-right');
+    rightResizeHandle.addEventListener('pointerdown', this.handleResizeStart.bind(this));
+    
+    // Resize handle events for left side
+    const leftResizeHandle = this.element.querySelector('.block-resize-handle-left');
+    leftResizeHandle.addEventListener('pointerdown', this.handleResizeLeftStart.bind(this));
     
     // Context menu event only (not click)
     this.element.addEventListener('contextmenu', this.handleContextMenu.bind(this));
@@ -300,7 +310,10 @@ export class Block {
    */
   handlePointerDown(event) {
     // Ignore if clicked on resize handle
-    if (event.target.classList.contains('block-resize-handle')) return;
+    if (event.target.classList.contains('block-resize-handle-left') || 
+        event.target.classList.contains('block-resize-handle-right')) {
+      return;
+    }
     
     event.preventDefault();
     
@@ -320,11 +333,11 @@ export class Block {
   }
   
   /**
-   * Handles pointer move event during drag
+   * Handles pointer move event during drag or resize
    * @param {PointerEvent} event 
    */
   handlePointerMove(event) {
-    if (!this.isDragging && !this.isResizing) return;
+    if (!this.isDragging && !this.isResizing && !this.isResizingLeft) return;
     
     // Get the full timeline width
     const gridRect = this.timeline.gridElement.getBoundingClientRect();
@@ -354,6 +367,7 @@ export class Block {
       this.start = newStart;
       this.updatePosition();
     } else if (this.isResizing) {
+      // Right resize handling
       // Calculate width change in hours
       const deltaX = event.clientX - this.resizeStartX;
       const deltaHours = (deltaX / gridWidth) * 24;
@@ -375,20 +389,56 @@ export class Block {
       // Preview size
       this.duration = newDuration;
       this.updatePosition();
+    } else if (this.isResizingLeft) {
+      // Left resize handling
+      // Calculate width change in hours
+      const deltaX = event.clientX - this.resizeLeftStartX;
+      const deltaHours = (deltaX / gridWidth) * 24;
+      
+      // Calculate new start and duration
+      let newStart = this.originalStart + deltaHours;
+      let newDuration = this.originalDuration - deltaHours;
+      
+      // Constrain minimum duration to 0.25 hours
+      if (newDuration < 0.25) {
+        newDuration = 0.25;
+        newStart = this.originalStart + this.originalDuration - 0.25;
+      }
+      
+      // Constrain to timeline bounds
+      if (!this.isWrappingEnabled) {
+        newStart = Math.max(0, newStart);
+      } else {
+        // For wrap mode, constrain to 0-24 range but allow wrapping
+        newStart = newStart % 24;
+        if (newStart < 0) newStart += 24;
+      }
+      
+      // Round to nearest 0.25 hour
+      newStart = Math.round(newStart * 4) / 4;
+      newDuration = Math.round(newDuration * 4) / 4;
+      
+      // Preview position and size
+      this.start = newStart;
+      this.duration = newDuration;
+      this.updatePosition();
     }
   }
   
   /**
-   * Handles pointer up event to end dragging
+   * Handles pointer up event to end dragging or resizing
    */
   handlePointerUp() {
-    if (this.isDragging || this.isResizing) {
+    if (this.isDragging || this.isResizing || this.isResizingLeft) {
       // Check for conflicts with other blocks (only if overlap is not allowed)
       if (this.timeline.hasConflict(this)) {
-        // Revert to original position
+        // Revert to original position/size
         if (this.isDragging) {
           this.start = this.originalStart;
         } else if (this.isResizing) {
+          this.duration = this.originalDuration;
+        } else if (this.isResizingLeft) {
+          this.start = this.originalStart;
           this.duration = this.originalDuration;
         }
         
@@ -403,7 +453,7 @@ export class Block {
       }
       
       // Dispatch resize end event if we were resizing
-      if (this.isResizing) {
+      if (this.isResizing || this.isResizingLeft) {
         document.dispatchEvent(new CustomEvent('block:resize:end', {
           detail: { blockId: this.id }
         }));
@@ -412,6 +462,7 @@ export class Block {
       // Reset state
       this.isDragging = false;
       this.isResizing = false;
+      this.isResizingLeft = false;
       this.element.style.zIndex = '1';
       this.element.style.cursor = 'grab';
       
@@ -425,7 +476,7 @@ export class Block {
   }
   
   /**
-   * Handles resize start event
+   * Handles resize start event for right handle
    * @param {PointerEvent} event 
    */
   handleResizeStart(event) {
@@ -434,6 +485,29 @@ export class Block {
     
     this.isResizing = true;
     this.resizeStartX = event.clientX;
+    this.originalDuration = this.duration;
+    
+    // Dispatch resize start event
+    document.dispatchEvent(new CustomEvent('block:resize:start', {
+      detail: { blockId: this.id }
+    }));
+    
+    // Add document-level event listeners
+    document.addEventListener('pointermove', this.handlePointerMove.bind(this));
+    document.addEventListener('pointerup', this.handlePointerUp.bind(this));
+  }
+  
+  /**
+   * Handles resize start event for left handle
+   * @param {PointerEvent} event 
+   */
+  handleResizeLeftStart(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    this.isResizingLeft = true;
+    this.resizeLeftStartX = event.clientX;
+    this.originalStart = this.start;
     this.originalDuration = this.duration;
     
     // Dispatch resize start event
@@ -562,6 +636,15 @@ export class Block {
   }
   
   /**
+   * Updates the time format setting
+   * @param {boolean} use24Hour 
+   */
+  setTimeFormat(use24Hour) {
+    this.use24HourFormat = use24Hour;
+    this.updatePosition(); // This will update labels with the new format
+  }
+  
+  /**
    * Removes the block elements from the DOM
    */
   remove() {
@@ -586,22 +669,8 @@ export class Block {
     if (data.title !== undefined) this.title = data.title;
     if (data.start !== undefined) this.start = data.start;
     if (data.duration !== undefined) this.duration = data.duration;
-    if (data.color !== undefined) {
-      this.color = data.color;
-      // Fix: Explicitly update element background color
-      this.element.style.backgroundColor = this.color;
-      
-      // Update wrap element if it exists
-      if (this.wrapElement) {
-        this.wrapElement.style.backgroundColor = this.color;
-      }
-      
-      // Update label arrow if it exists
-      if (this.labelArrow) {
-        this.labelArrow.style.backgroundColor = this.color;
-        this.labelArrow.style.borderColor = this.color;
-      }
-    }
+    if (data.color !== undefined) this.color = data.color;
+    if (data.use24HourFormat !== undefined) this.use24HourFormat = data.use24HourFormat;
     
     this.updatePosition();
   }

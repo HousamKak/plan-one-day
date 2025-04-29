@@ -15,6 +15,7 @@ function init() {
   const shuffleButton = document.querySelector('.btn-shuffle');
   const wrapToggle = document.getElementById('wrap-toggle');
   const overlapToggle = document.getElementById('overlap-toggle');
+  const timeFormatToggle = document.getElementById('time-format-toggle');
   const saveButton = document.querySelector('.btn-save');
   const presetSelect = document.getElementById('preset-select');
   const presetContainer = document.getElementById('preset-container');
@@ -29,8 +30,11 @@ function init() {
   const initialState = storage.initialize();
   if (initialState) {
     timeline.deserialize(initialState);
-    wrapToggle.checked = initialState.isWrappingEnabled;
-    overlapToggle.checked = initialState.allowOverlap;
+    
+    // Set toggle states
+    wrapToggle.setAttribute('aria-pressed', initialState.isWrappingEnabled ? 'true' : 'false');
+    overlapToggle.setAttribute('aria-pressed', initialState.allowOverlap ? 'true' : 'false');
+    timeFormatToggle.setAttribute('aria-pressed', !initialState.use24HourFormat ? 'true' : 'false');
   }
   
   // Event listeners for toolbar controls
@@ -48,13 +52,30 @@ function init() {
   });
   
   // Wrap toggle
-  wrapToggle.addEventListener('change', () => {
-    timeline.setWrappingEnabled(wrapToggle.checked);
+  wrapToggle.addEventListener('click', () => {
+    const isCurrentlyEnabled = wrapToggle.getAttribute('aria-pressed') === 'true';
+    const newState = !isCurrentlyEnabled;
+    
+    wrapToggle.setAttribute('aria-pressed', newState ? 'true' : 'false');
+    timeline.setWrappingEnabled(newState);
   });
   
   // Overlap toggle
-  overlapToggle.addEventListener('change', () => {
-    timeline.setOverlapAllowed(overlapToggle.checked);
+  overlapToggle.addEventListener('click', () => {
+    const isCurrentlyEnabled = overlapToggle.getAttribute('aria-pressed') === 'true';
+    const newState = !isCurrentlyEnabled;
+    
+    overlapToggle.setAttribute('aria-pressed', newState ? 'true' : 'false');
+    timeline.setOverlapAllowed(newState);
+  });
+  
+  // Time format toggle (12h/24h)
+  timeFormatToggle.addEventListener('click', () => {
+    const isCurrently12Hour = timeFormatToggle.getAttribute('aria-pressed') === 'true';
+    const newState = !isCurrently12Hour;
+    
+    timeFormatToggle.setAttribute('aria-pressed', newState ? 'true' : 'false');
+    timeline.setTimeFormat(!newState); // true for 24h, false for 12h
   });
   
   // Save preset button
@@ -274,8 +295,9 @@ function loadPreset(name, timeline, storage) {
     timeline.deserialize(presetData);
     
     // Update toggle states to match loaded preset
-    document.getElementById('wrap-toggle').checked = presetData.isWrappingEnabled || false;
-    document.getElementById('overlap-toggle').checked = presetData.allowOverlap || false;
+    document.getElementById('wrap-toggle').setAttribute('aria-pressed', presetData.isWrappingEnabled ? 'true' : 'false');
+    document.getElementById('overlap-toggle').setAttribute('aria-pressed', presetData.allowOverlap ? 'true' : 'false');
+    document.getElementById('time-format-toggle').setAttribute('aria-pressed', !presetData.use24HourFormat ? 'true' : 'false');
     
     showToast(`Preset "${name}" loaded`);
   } else {

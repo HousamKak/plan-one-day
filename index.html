@@ -25,18 +25,31 @@
                     <path d="M4 4L9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </button>
-            <div class="wrap-toggle">
-                <label for="wrap-toggle">
-                    <span>Wrap-around</span>
-                    <input type="checkbox" id="wrap-toggle" aria-label="Toggle wrap-around">
-                </label>
-            </div>
-            <div class="overlap-toggle">
-                <label for="overlap-toggle">
-                    <span>Allow overlap</span>
-                    <input type="checkbox" id="overlap-toggle" aria-label="Toggle block overlap">
-                </label>
-            </div>
+            <button aria-label="Toggle wrap-around" title="Toggle wrap-around" class="btn-toggle" id="wrap-toggle" aria-pressed="false">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17 3H3V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M21 7V21H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M3 3L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="tooltip">Wrap-around</span>
+            </button>
+
+            <button aria-label="Toggle allow overlap" title="Toggle allow overlap" class="btn-toggle" id="overlap-toggle" aria-pressed="false">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="16" cy="16" r="5" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span class="tooltip">Allow overlap</span>
+            </button>
+
+            <button aria-label="Toggle time format" title="Toggle time format" class="btn-toggle" id="time-format-toggle" aria-pressed="false">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="tooltip">12h/24h Format</span>
+            </button>
+
             <div class="preset-controls">
                 <button aria-label="Save preset" title="Save preset" class="btn-save">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -46,7 +59,6 @@
                     </svg>
                 </button>
                 <div id="preset-container" class="preset-selector">
-                    <!-- Presets will be dynamically added here -->
                     <select id="preset-select" aria-label="Load preset">
                         <option value="">Load preset</option>
                     </select>
