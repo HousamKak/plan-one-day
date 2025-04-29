@@ -76,6 +76,10 @@ function init() {
     updatePresetsWithDeleteButtons(event.detail.presets, timeline, storage);
   });
   
+  // Trigger initial population of preset UI with delete buttons
+  const initialPresets = storage.getPresets();
+  updatePresetsWithDeleteButtons(initialPresets, timeline, storage);
+  
   // Initialize keyboard a11y focus trap in modals
   initializeModalKeyboardHandling();
 }
@@ -113,9 +117,12 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
   const presetSelect = document.getElementById('preset-select');
   
   // Create a custom dropdown with delete buttons
-  if (!document.querySelector('.custom-preset-container')) {
+  let customContainer = document.querySelector('.custom-preset-container');
+  let presetButton = document.querySelector('.preset-button');
+  
+  if (!customContainer) {
     // Create a container for the custom dropdown
-    const customContainer = document.createElement('div');
+    customContainer = document.createElement('div');
     customContainer.className = 'custom-preset-container';
     customContainer.style.position = 'absolute';
     customContainer.style.top = '100%';
@@ -134,7 +141,7 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     presetContainer.appendChild(customContainer);
     
     // Replace select with a button that shows the custom dropdown
-    const presetButton = document.createElement('button');
+    presetButton = document.createElement('button');
     presetButton.className = 'preset-button';
     presetButton.style.width = '100%';
     presetButton.style.textAlign = 'left';
@@ -163,9 +170,6 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
       }
     });
   }
-  
-  // Get the custom container
-  const customContainer = document.querySelector('.custom-preset-container');
   
   // Clear existing items
   customContainer.innerHTML = '';
@@ -215,9 +219,13 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     // Add delete event
     deleteButton.addEventListener('click', (e) => {
       e.stopPropagation();
+      e.preventDefault();
       if (confirm(`Are you sure you want to delete the preset "${preset.name}"?`)) {
         if (storage.deletePreset(preset.name)) {
           showToast(`Preset "${preset.name}" deleted`);
+          // Update UI immediately after deletion
+          const updatedPresets = storage.getPresets();
+          updatePresetsWithDeleteButtons(updatedPresets, timeline, storage);
         } else {
           showToast('Error deleting preset');
         }

@@ -304,6 +304,7 @@ h1 {
   justify-content: center;
   width: 100%;
   overflow: hidden;
+  text-align: center;
 }
 
 .block-title-text {

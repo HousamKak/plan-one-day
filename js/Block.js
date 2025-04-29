@@ -176,19 +176,49 @@ export class Block {
     const startTime = formatTime(this.start);
     const endTime = formatTime((this.start + this.duration) % 24);
     
-    // Show title above time range with title larger
-    titleElement.innerHTML = `<span class="block-title-text">${this.title}</span>
-<span class="block-time-text">${startTime} - ${endTime}</span>`;
+    // Make sure to create proper block elements
+    titleElement.innerHTML = '';
+    
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'block-title-text';
+    titleSpan.textContent = this.title;
+    
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'block-time-text';
+    timeSpan.textContent = `${startTime} - ${endTime}`;
+    
+    titleElement.appendChild(titleSpan);
+    titleElement.appendChild(timeSpan);
     
     if (this.labelArrow) {
-      this.labelArrow.innerHTML = `<span class="block-title-text">${this.title}</span>
-<span class="block-time-text">${startTime} - ${endTime}</span>`;
+      this.labelArrow.innerHTML = '';
+      
+      const labelTitleSpan = document.createElement('span');
+      labelTitleSpan.className = 'block-title-text';
+      labelTitleSpan.textContent = this.title;
+      
+      const labelTimeSpan = document.createElement('span');
+      labelTimeSpan.className = 'block-time-text';
+      labelTimeSpan.textContent = `${startTime} - ${endTime}`;
+      
+      this.labelArrow.appendChild(labelTitleSpan);
+      this.labelArrow.appendChild(labelTimeSpan);
     }
     
     if (this.wrapElement) {
       const wrapTitleElement = this.wrapElement.querySelector('.block-title');
-      wrapTitleElement.innerHTML = `<span class="block-title-text">${this.title}</span>
-<span class="block-time-text">${startTime} - ${endTime}</span>`;
+      wrapTitleElement.innerHTML = '';
+      
+      const wrapTitleSpan = document.createElement('span');
+      wrapTitleSpan.className = 'block-title-text';
+      wrapTitleSpan.textContent = this.title;
+      
+      const wrapTimeSpan = document.createElement('span');
+      wrapTimeSpan.className = 'block-time-text';
+      wrapTimeSpan.textContent = `${startTime} - ${endTime}`;
+      
+      wrapTitleElement.appendChild(wrapTitleSpan);
+      wrapTitleElement.appendChild(wrapTimeSpan);
     }
   }
   
