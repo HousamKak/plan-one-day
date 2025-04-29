@@ -260,6 +260,10 @@ h1 {
   z-index: 3;
 }
 
+.block * {
+  color: white !important;
+}
+
 .block:active {
   cursor: grabbing;
   z-index: 10;
@@ -276,9 +280,10 @@ h1 {
   position: absolute;
   right: 0;
   top: 0;
-  width: 8px;
+  width: 10px;
   height: 100%;
   cursor: ew-resize;
+  z-index: 5;
 }
 
 .label-arrow {

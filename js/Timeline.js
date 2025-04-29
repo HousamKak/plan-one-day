@@ -49,8 +49,10 @@ export class Timeline {
    * @param {MouseEvent} event - Click event
    */
   handleGridClick(event) {
-    // Ignore if clicked on a block
-    if (event.target.closest('.block')) return;
+    // Ignore if clicked on a block or resize handle
+    if (event.target.closest('.block') || event.target.closest('.block-resize-handle')) {
+      return;
+    }
     
     // Get the position of the timeline line
     const timelineRect = document.querySelector('.timeline-line').getBoundingClientRect();

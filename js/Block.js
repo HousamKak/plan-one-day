@@ -243,9 +243,8 @@ updateLabel() {
     const resizeHandle = this.element.querySelector('.block-resize-handle');
     resizeHandle.addEventListener('pointerdown', this.handleResizeStart.bind(this));
     
-    // Context menu and click events
+    // Context menu event only (not click)
     this.element.addEventListener('contextmenu', this.handleContextMenu.bind(this));
-    this.element.addEventListener('click', this.handleClick.bind(this));
     
     // Keyboard events
     this.element.addEventListener('keydown', this.handleKeyDown.bind(this));
