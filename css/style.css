@@ -407,7 +407,7 @@ h1 {
   z-index: 5;
 }
 
-/* Update label arrow styling to support variable connector heights */
+/* Base label arrow styling */
 .label-arrow {
   position: absolute;
   background-color: inherit;
@@ -415,7 +415,6 @@ h1 {
   border-radius: 8px;
   font-size: 0.75rem;
   white-space: nowrap;
-  bottom: 120px; /* Base position - will be adjusted via JS */
   transform: translateX(-50%);
   z-index: 20;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
@@ -426,7 +425,6 @@ h1 {
   opacity: 0.95;
   transition: all 0.3s ease;
   animation: fadeInArrow 0.3s ease forwards;
-  --connector-height: 20px; /* Default connector height - can be modified via JS */
 }
 
 /* Container for label content with proper spacing */
@@ -450,31 +448,52 @@ h1 {
   color: rgba(255, 255, 255, 0.85) !important;
 }
 
-/* Updated connector line with variable height */
-.label-arrow::after {
+/* Top position styling - arrow points down */
+.label-arrow-top::after {
   content: '';
   position: absolute;
   top: 100%;
   left: 50%;
   width: 2px;
-  height: var(--connector-height); /* Use the CSS variable for height */
+  height: 20px;
   background-color: inherit;
   transform: translateX(-50%);
-  transition: height 0.3s ease;
 }
 
-/* Updated arrow head positioning */
-.label-arrow::before {
+.label-arrow-top::before {
   content: '';
   position: absolute;
-  top: calc(100% + var(--connector-height)); /* Position at the end of the connector line */
+  top: 100%;
   left: 50%;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid;
   border-top-color: inherit;
   transform: translateX(-50%);
-  transition: top 0.3s ease;
+}
+
+/* Bottom position styling - arrow points up */
+.label-arrow-bottom::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 2px;
+  height: 20px;
+  background-color: inherit;
+  transform: translateX(-50%);
+}
+
+.label-arrow-bottom::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid;
+  border-bottom-color: inherit;
+  transform: translateX(-50%);
 }
 
 /* Resize handles for both sides */

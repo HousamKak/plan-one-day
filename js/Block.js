@@ -251,7 +251,6 @@ export class Block {
   
   /**
    * Updates the label visibility and creates arrow label if needed
-   * Implements collision detection to prevent overlapping labels
    */
   updateLabelVisibility() {
     const titleElement = this.element.querySelector('.block-title');
@@ -268,24 +267,25 @@ export class Block {
         this.labelArrow.setAttribute('data-block-id', this.id);
         this.labelArrow.innerHTML = titleElement.innerHTML;
         this.timeline.gridElement.appendChild(this.labelArrow);
+      } else {
+        // Make sure the label is visible during resize
+        this.labelArrow.style.display = 'block';
       }
       
-      // Position the label arrow above the block center
+      // Position the label arrow relative to the block
       setTimeout(() => {
         const rect = this.element.getBoundingClientRect();
         const gridRect = this.timeline.gridElement.getBoundingClientRect();
         const blockCenter = rect.left + (rect.width / 2) - gridRect.left;
         
-        // Get label width to calculate potential overlapping
-        const labelWidth = this.labelArrow.offsetWidth;
-        
         // Store the natural center position for reference
         this._naturalCenter = blockCenter;
         
-        // Notify timeline about label update to handle collisions
-        this.timeline.updateLabelPositions();
+        // Set an initial position before the timeline positions it
+        this.labelArrow.style.left = `${blockCenter}px`;
         
-        // The actual positioning will happen in positionLabel() which is called by the timeline
+        // Notify timeline about label update to handle alternating positions
+        this.timeline.updateLabelPositions();
       }, 0);
     } else {
       titleElement.style.opacity = '1';
@@ -297,41 +297,43 @@ export class Block {
   }
   
   /**
-   * Positions the label arrow with collision avoidance
-   * @param {Object} collisionData - Data about nearby blocks to avoid overlaps
-   * @param {number} levelIndex - Vertical level for the label (0 = default level)
+   * Positions the label arrow with top/bottom alternating strategy
+   * @param {Object} options - Positioning options
+   * @param {string} options.position - 'top' or 'bottom' position
    */
-  positionLabel(collisionData = null, levelIndex = 0) {
+  positionLabel(options = {}) {
     if (!this.labelArrow || !this._naturalCenter) return;
-    
-    const labelWidth = this.labelArrow.offsetWidth;
-    let finalLeft = this._naturalCenter;
-    
-    // Apply collision avoidance if provided
-    if (collisionData) {
-      finalLeft = collisionData.adjustedPosition;
-      levelIndex = collisionData.level || 0;
+
+    const position = options.position || 'top'; // Default to top if not specified
+
+    // Set the horizontal position centered over the block
+    this.labelArrow.style.left = `${this._naturalCenter}px`;
+
+    // Remove any previous position classes
+    this.labelArrow.classList.remove('label-arrow-top', 'label-arrow-bottom');
+
+    // Get the timeline grid and block positions
+    const gridRect = this.timeline.gridElement.getBoundingClientRect();
+    const blockRect = this.element.getBoundingClientRect();
+
+    if (position === 'bottom') {
+      // Position below the block with a fixed offset
+      this.labelArrow.style.bottom = 'auto'; // Clear bottom position
+      this.labelArrow.style.top = `${blockRect.bottom - gridRect.top + 20}px`; // 20px below the block
+      this.labelArrow.classList.add('label-arrow-bottom');
+    } else {
+      // Position above the block with a fixed offset
+      this.labelArrow.style.top = 'auto'; // Clear top position
+      this.labelArrow.style.bottom = `${gridRect.bottom - blockRect.top + 20}px`; // 20px above the block
+      this.labelArrow.classList.add('label-arrow-top');
     }
-    
-    // Calculate the vertical offset based on the level (increased from 30 to 40px per level for better separation)
-    const verticalOffset = levelIndex * 40;
-    
-    // Set the position
-    this.labelArrow.style.left = `${finalLeft}px`;
-    this.labelArrow.style.bottom = `${120 + verticalOffset}px`;
-    
+
     // Create a lighter version of the block color for the label
     const lighterColor = this.adjustColorBrightness(this.color, 15); // Make 15% lighter
-    
+
     this.labelArrow.style.backgroundColor = lighterColor;
     this.labelArrow.style.borderColor = lighterColor;
     this.labelArrow.style.display = 'block';
-    
-    // Adjust the connector line length based on the level
-    const connectorHeight = 20 + verticalOffset;
-    
-    // Update the ::after pseudo-element height using a custom property
-    this.labelArrow.style.setProperty('--connector-height', `${connectorHeight}px`);
   }
   
   /**

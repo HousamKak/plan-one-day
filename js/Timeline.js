@@ -32,16 +32,54 @@ export class Timeline {
     this.gridElement.addEventListener('click', this.handleGridClick.bind(this));
     
     // Listen for resize start and end events
-    document.addEventListener('block:resize:start', () => {
+    document.addEventListener('block:resize:start', (event) => {
       this.setResizeInProgress(true);
+
+      // During resize, continuously update label positions
+      const blockId = event.detail.blockId;
+      const block = this.blocks.get(blockId);
+
+      if (block && block.labelArrow) {
+        // Create a function to update the label position during resize
+        const updateLabelDuringResize = () => {
+          if (this.isResizeInProgress && block.labelArrow) {
+            const rect = block.element.getBoundingClientRect();
+            const gridRect = this.gridElement.getBoundingClientRect();
+            const blockCenter = rect.left + (rect.width / 2) - gridRect.left;
+
+            // Update the center position
+            block._naturalCenter = blockCenter;
+
+            // Update the position based on the current position class
+            if (block.labelArrow.classList.contains('label-arrow-top')) {
+              block.positionLabel({ position: 'top' });
+            } else {
+              block.positionLabel({ position: 'bottom' });
+            }
+
+            // Continue updating while resizing
+            if (this.isResizeInProgress) {
+              requestAnimationFrame(updateLabelDuringResize);
+            }
+          }
+        };
+
+        // Start updating
+        requestAnimationFrame(updateLabelDuringResize);
+      }
     });
-    
-    document.addEventListener('block:resize:end', () => {
+
+    document.addEventListener('block:resize:end', (event) => {
+      // Update label positions immediately after resize
+      setTimeout(() => {
+        this.updateLabelPositions();
+      }, 10);
+
       // Set grace period before allowing timeline clicks
       if (this.resizeGracePeriodTimeout) {
         clearTimeout(this.resizeGracePeriodTimeout);
       }
-      
+
       this.resizeGracePeriodTimeout = setTimeout(() => {
         this.setResizeInProgress(false);
       }, this.resizeGracePeriodDuration);
@@ -526,106 +564,24 @@ export class Timeline {
     
     if (labels.length <= 1) return; // No need for collision detection with 0 or 1 label
     
-    // Sort the blocks by their start time
-    const sortedBlockIds = Array.from(this.blocks.values())
-      .sort((a, b) => a.start - b.start)
-      .map(block => block.id);
+    // Sort labels by their horizontal position (left to right)
+    const sortedLabels = labels.sort((a, b) => {
+      const aRect = a.getBoundingClientRect();
+      const bRect = b.getBoundingClientRect();
+      return aRect.left - bRect.left;
+    });
     
-    // Create a map of block IDs to their _naturalCenter value
-    const blockCenters = new Map();
-    for (const label of labels) {
+    // Assign alternating positions (top/bottom)
+    sortedLabels.forEach((label, index) => {
       const blockId = label.getAttribute('data-block-id');
       const block = this.blocks.get(blockId);
-      if (block && block._naturalCenter !== undefined) {
-        blockCenters.set(blockId, {
-          center: block._naturalCenter,
-          width: label.offsetWidth,
-          level: 0 // Initial level (vertical stacking level)
-        });
-      }
-    }
-    
-    // Check for overlaps and assign levels
-    this.assignLevelsAndPositions(blockCenters, sortedBlockIds);
-    
-    // Position all labels according to the calculated positions
-    for (const [blockId, data] of blockCenters.entries()) {
-      const block = this.blocks.get(blockId);
+      
       if (block) {
-        block.positionLabel({
-          adjustedPosition: data.adjustedPosition || data.center,
-          level: data.level || 0
-        });
+        // Simple alternating pattern - even indices go top, odd go bottom
+        const position = index % 2 === 0 ? 'top' : 'bottom';
+        block.positionLabel({ position });
       }
-    }
-  }
-  
-  /**
-   * Assigns vertical levels and adjusted horizontal positions to labels
-   * @param {Map} blockCenters - Map of block IDs to their center data
-   * @param {Array} sortedBlockIds - Array of block IDs sorted by start time
-   */
-  assignLevelsAndPositions(blockCenters, sortedBlockIds) {
-    // Group blocks by their vertical level
-    const levelGroups = [[]]; // Start with one empty level
-    
-    for (const blockId of sortedBlockIds) {
-      if (!blockCenters.has(blockId)) continue;
-      
-      const blockData = blockCenters.get(blockId);
-      const labelWidth = blockData.width;
-      const labelCenter = blockData.center;
-      const labelLeft = labelCenter - (labelWidth / 2);
-      const labelRight = labelCenter + (labelWidth / 2);
-      
-      // Find the first level where this label fits without overlap
-      let placedInLevel = false;
-      let currentLevel = 0;
-      
-      while (!placedInLevel) {
-        // Create a new level if needed
-        if (currentLevel >= levelGroups.length) {
-          levelGroups.push([]);
-        }
-        
-        const currentLevelBlocks = levelGroups[currentLevel];
-        let hasOverlap = false;
-        
-        // Check for overlap with any block in this level
-        for (const existingBlockId of currentLevelBlocks) {
-          const existingData = blockCenters.get(existingBlockId);
-          const existingLabelWidth = existingData.width;
-          const existingCenter = existingData.adjustedPosition || existingData.center;
-          const existingLeft = existingCenter - (existingLabelWidth / 2);
-          const existingRight = existingCenter + (existingLabelWidth / 2);
-          
-          // Check for horizontal overlap with increased safety margin (20px)
-          if (labelRight > existingLeft - 20 && labelLeft < existingRight + 20) {
-            hasOverlap = true;
-            break;
-          }
-        }
-        
-        if (!hasOverlap) {
-          // This level works, place the label here
-          levelGroups[currentLevel].push(blockId);
-          blockData.level = currentLevel;
-          blockData.adjustedPosition = labelCenter; // No horizontal adjustment needed
-          placedInLevel = true;
-        } else {
-          // Try the next level
-          currentLevel++;
-        }
-      }
-    }
-    
-    // Apply the changes back to the blockCenters map
-    for (let level = 0; level < levelGroups.length; level++) {
-      for (const blockId of levelGroups[level]) {
-        const blockData = blockCenters.get(blockId);
-        blockData.level = level;
-      }
-    }
+    });
   }
   
   /**
