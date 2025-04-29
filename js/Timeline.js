@@ -81,9 +81,14 @@ export class Timeline {
       if (this.use24HourFormat) {
         hourMarker.textContent = `${hour}h`;
       } else {
+        // Adjust the hour marker formatting to include a space and smaller font for AM/PM
         const hour12 = hour % 12 || 12; // Convert 0 to 12 for 12 AM
         const period = hour >= 12 ? 'PM' : 'AM';
-        hourMarker.textContent = `${hour12}${period}`;
+        const periodSpan = document.createElement('span');
+        periodSpan.style.fontSize = 'smaller';
+        periodSpan.textContent = period;
+        hourMarker.innerHTML = `${hour12} `;
+        hourMarker.appendChild(periodSpan);
       }
       
       hoursContainer.appendChild(hourMarker);

@@ -182,15 +182,13 @@ export class Block {
     const formatTime = (hours) => {
       const h = Math.floor(hours);
       const m = Math.round((hours - h) * 60);
-      
+
       if (this.use24HourFormat) {
-        // 24-hour format: "09:30"
         return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
       } else {
-        // 12-hour format: "9:30 AM"
         const period = h >= 12 ? 'PM' : 'AM';
         const hour12 = h % 12 || 12; // Convert 0 to 12 for 12 AM
-        return `${hour12}:${m.toString().padStart(2, '0')} ${period}`;
+        return `${hour12}:${m.toString().padStart(2, '0')} <span style='font-size: smaller;'>${period}</span>`;
       }
     };
     
@@ -206,7 +204,7 @@ export class Block {
     
     const timeSpan = document.createElement('span');
     timeSpan.className = 'block-time-text';
-    timeSpan.textContent = `${startTime} - ${endTime}`;
+    timeSpan.innerHTML = `${startTime} - ${endTime}`;
     
     titleElement.appendChild(titleSpan);
     titleElement.appendChild(timeSpan);
@@ -220,7 +218,7 @@ export class Block {
       
       const labelTimeSpan = document.createElement('span');
       labelTimeSpan.className = 'block-time-text';
-      labelTimeSpan.textContent = `${startTime} - ${endTime}`;
+      labelTimeSpan.innerHTML = `${startTime} - ${endTime}`;
       
       this.labelArrow.appendChild(labelTitleSpan);
       this.labelArrow.appendChild(labelTimeSpan);
@@ -236,7 +234,7 @@ export class Block {
       
       const wrapTimeSpan = document.createElement('span');
       wrapTimeSpan.className = 'block-time-text';
-      wrapTimeSpan.textContent = `${startTime} - ${endTime}`;
+      wrapTimeSpan.innerHTML = `${startTime} - ${endTime}`;
       
       wrapTitleElement.appendChild(wrapTitleSpan);
       wrapTitleElement.appendChild(wrapTimeSpan);
