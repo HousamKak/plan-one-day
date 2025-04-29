@@ -43,69 +43,21 @@
             font-size: 2.5rem;
         }
 
-        .controls {
-            background-color: white;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        input, button {
-            padding: 0.5rem 1rem;
-            border: 1px solid #ced4da;
-            border-radius: 0.25rem;
-            font-size: 1rem;
-        }
-
-        input {
-            flex: 1;
-            min-width: 120px;
-        }
-
-        .duration-input {
-            width: 100px;
-            flex: 0 0 auto;
-        }
-
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        button:hover {
-            background-color: #2563eb;
-            transform: translateY(-2px);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
         .timeline-container {
             position: relative;
-            padding: 2rem 0;
-            overflow-x: auto;
+            padding: 2rem 0 4rem 0; /* Add more padding at the bottom for markers */
             margin-bottom: 2rem;
+            width: 100%;
         }
 
         .timeline {
-            height: 4px;
+            height: 8px; /* Make timeline thicker for easier clicking */
             background-color: var(--timeline-color);
             position: relative;
             margin: 0 auto;
-            min-width: 100%;
+            width: 100%;
+            z-index: 1;
+            cursor: pointer;
         }
 
         .hour-markers {
@@ -113,6 +65,7 @@
             justify-content: space-between;
             padding: 0 10px;
             position: relative;
+            margin-top: 30px; /* Adjusted to tighten layout */
         }
 
         .hour-marker {
@@ -140,13 +93,13 @@
         .blocks-container {
             position: relative;
             height: 80px;
-            margin-top: 2rem;
+            margin-top: -44px; /* Position so timeline runs through center of blocks */
         }
 
         .block {
             position: absolute;
-            height: 60px;
-            top: 0;
+            height: 70px;
+            top: -35px; /* Position to center on the timeline (half of height) */
             border-radius: 0.5rem;
             display: flex;
             flex-direction: column;
@@ -158,6 +111,7 @@
             transition: box-shadow 0.3s, transform 0.3s;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            z-index: 2;
         }
 
         .block:hover {
@@ -215,17 +169,17 @@
         .instructions {
             text-align: center;
             color: #6c757d;
-            margin-top: 2rem;
+            margin: 2rem auto 0;
             max-width: 800px;
             line-height: 1.6;
         }
 
         .hour-grid {
             position: absolute;
-            top: 20px;
+            top: -20px;
             left: 0;
             width: 100%;
-            height: 60px;
+            height: 80px;
             display: flex;
             pointer-events: none;
         }
@@ -240,18 +194,80 @@
             border-right: none;
         }
 
+        /* Block Creation Popup Styles */
+        .block-creation-popup {
+            display: none;
+            position: absolute;
+            z-index: 1000;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 1rem;
+            width: 250px;
+        }
+
+        .block-creation-popup .input-group {
+            margin-bottom: 0.75rem;
+        }
+
+        .block-creation-popup label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .block-creation-popup input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .block-creation-popup .popup-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .block-creation-popup button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .block-creation-popup .cancel-btn {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+
+        .block-creation-popup .cancel-btn:hover {
+            background-color: #dee2e6;
+        }
+
+        .block-creation-popup .create-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .block-creation-popup .create-btn:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 1rem;
             }
             
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            input, button {
-                width: 100%;
+            .block-creation-popup {
+                width: 90%;
+                max-width: 300px;
             }
         }
 
@@ -283,12 +299,6 @@
     <div class="container">
         <h1>24-Hour Visual Day Planner</h1>
         
-        <div class="controls">
-            <input type="text" id="block-name" placeholder="Block name" aria-label="Block name">
-            <input type="number" id="block-duration" class="duration-input" placeholder="Hours" min="0.5" max="24" step="0.5" value="1" aria-label="Duration in hours">
-            <button id="add-block">Add Block</button>
-        </div>
-        
         <div class="timeline-container">
             <div class="timeline"></div>
             <div class="hour-markers" id="hour-markers"></div>
@@ -297,7 +307,23 @@
         </div>
         
         <div class="instructions">
-            <p>Drag blocks to reposition • Drag right edge to resize • Click a block for more options</p>
+            <p>Click on the timeline to add a block • Drag blocks to reposition • Drag right edge to resize • Click a block for more options</p>
+        </div>
+    </div>
+
+    <!-- Block creation popup -->
+    <div class="block-creation-popup" id="block-creation-popup">
+        <div class="input-group">
+            <label for="popup-block-name">Block Name</label>
+            <input type="text" id="popup-block-name" placeholder="Untitled Block">
+        </div>
+        <div class="input-group">
+            <label for="popup-block-duration">Duration (hours)</label>
+            <input type="number" id="popup-block-duration" min="0.5" max="24" step="0.5" value="1">
+        </div>
+        <div class="popup-buttons">
+            <button class="cancel-btn" id="popup-cancel">Cancel</button>
+            <button class="create-btn" id="popup-create">Create Block</button>
         </div>
     </div>
 
@@ -344,16 +370,21 @@
                 this.startLeft = 0;
                 this.startWidth = 0;
                 this.containerWidth = 0;
+                this.clickedTimePosition = 0; // Store clicked position for popup
                 
                 // DOM elements
                 this.timelineContainer = document.querySelector('.timeline-container');
                 this.blocksContainer = document.getElementById('blocks-container');
                 this.hourMarkers = document.getElementById('hour-markers');
                 this.hourGrid = document.getElementById('hour-grid');
-                this.blockNameInput = document.getElementById('block-name');
-                this.blockDurationInput = document.getElementById('block-duration');
-                this.addBlockButton = document.getElementById('add-block');
                 this.blockActions = document.getElementById('block-actions');
+                
+                // Popup elements
+                this.blockCreationPopup = document.getElementById('block-creation-popup');
+                this.popupBlockName = document.getElementById('popup-block-name');
+                this.popupBlockDuration = document.getElementById('popup-block-duration');
+                this.popupCancelBtn = document.getElementById('popup-cancel');
+                this.popupCreateBtn = document.getElementById('popup-create');
                 
                 // Initialize the timeline
                 this.initializeTimeline();
@@ -364,6 +395,9 @@
                 // Initial setup
                 this.updateContainerWidth();
                 window.addEventListener('resize', () => this.updateContainerWidth());
+                
+                // Setup timeline clicking
+                this.setupTimelineClick();
             }
             
             /**
@@ -403,9 +437,6 @@
              * Add all required event listeners
              */
             addEventListeners() {
-                // Add block button
-                this.addBlockButton.addEventListener('click', () => this.addNewBlock());
-                
                 // Mouse events for drag and resize
                 document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
                 document.addEventListener('mouseup', () => this.handleMouseUp());
@@ -434,47 +465,20 @@
                         this.hideBlockActions();
                     }
                 });
-            }
-            
-            /**
-             * Add a new block to the timeline
-             */
-            addNewBlock() {
-                const name = this.blockNameInput.value.trim() || 'Untitled Block';
-                const duration = parseFloat(this.blockDurationInput.value) || 1;
                 
-                // Validate duration
-                if (duration <= 0 || duration > this.totalHours) {
-                    alert(`Duration must be between 0.5 and ${this.totalHours} hours`);
-                    return;
-                }
+                // Popup event listeners
+                this.popupCancelBtn.addEventListener('click', () => this.hideBlockCreationPopup());
+                this.popupCreateBtn.addEventListener('click', () => this.createBlockFromPopup());
                 
-                // Find first available position
-                let start = 0;
-                while (this.isPositionOccupied(start, duration)) {
-                    start += 0.5;
-                    if (start + duration > this.totalHours) {
-                        start = 0;
-                        break;
+                // Close popup when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.block-creation-popup') && 
+                        !e.target.closest('.timeline') && 
+                        !e.target.closest('.timeline-container') && 
+                        this.blockCreationPopup.style.display === 'block') {
+                        this.hideBlockCreationPopup();
                     }
-                }
-                
-                /** @type {Block} */
-                const newBlock = {
-                    id: 'block_' + Date.now(),
-                    name,
-                    start,
-                    duration,
-                    color: this.getRandomColor()
-                };
-                
-                this.blocks.push(newBlock);
-                this.renderBlock(newBlock);
-                
-                // Clear inputs
-                this.blockNameInput.value = '';
-                this.blockDurationInput.value = '1';
-                this.blockNameInput.focus();
+                });
             }
             
             /**
@@ -746,6 +750,80 @@
             }
             
             /**
+             * Show block creation popup at clicked position
+             * @param {number} timePosition - Clicked time position in hours
+             * @param {MouseEvent} e - Mouse event
+             */
+            showBlockCreationPopup(timePosition, e) {
+                // Store clicked position
+                this.clickedTimePosition = timePosition;
+                
+                // Reset form fields
+                this.popupBlockName.value = '';
+                this.popupBlockDuration.value = '1';
+                
+                // Position popup near click
+                const rect = this.timelineContainer.getBoundingClientRect();
+                const clickX = e.clientX;
+                const clickY = e.clientY;
+                
+                // Adjust position to not go off-screen
+                let left = clickX - rect.left - 125; // Center the 250px wide popup
+                if (left < 0) left = 0;
+                if (left > rect.width - 250) left = rect.width - 250;
+                
+                this.blockCreationPopup.style.left = `${left + rect.left}px`;
+                this.blockCreationPopup.style.top = `${clickY + 20}px`;
+                this.blockCreationPopup.style.display = 'block';
+                
+                // Focus the name input
+                this.popupBlockName.focus();
+            }
+            
+            /**
+             * Hide block creation popup
+             */
+            hideBlockCreationPopup() {
+                this.blockCreationPopup.style.display = 'none';
+            }
+            
+            /**
+             * Create a new block from popup data
+             */
+            createBlockFromPopup() {
+                const name = this.popupBlockName.value.trim() || 'Untitled Block';
+                const duration = parseFloat(this.popupBlockDuration.value) || 1;
+                
+                // Validate duration
+                if (duration <= 0 || duration > this.totalHours) {
+                    alert(`Duration must be between 0.5 and ${this.totalHours} hours`);
+                    return;
+                }
+                
+                // Check if position is available
+                if (this.isPositionOccupied(this.clickedTimePosition, duration)) {
+                    alert('Cannot create block: This time slot is already occupied');
+                    return;
+                }
+                
+                // Create new block at clicked position
+                /** @type {Block} */
+                const newBlock = {
+                    id: 'block_' + Date.now(),
+                    name,
+                    start: this.clickedTimePosition,
+                    duration,
+                    color: this.getRandomColor()
+                };
+                
+                this.blocks.push(newBlock);
+                this.renderBlock(newBlock);
+                
+                // Hide the popup
+                this.hideBlockCreationPopup();
+            }
+            
+            /**
              * Edit the active block
              */
             editActiveBlock() {
@@ -810,11 +888,39 @@
                 
                 this.hideBlockActions();
             }
+            
+            /**
+             * Setup click event on timeline to create blocks
+             */
+            setupTimelineClick() {
+                // Create handler function for timeline clicks
+                const handleTimelineClick = (e) => {
+                    // Ignore clicks on blocks
+                    if (e.target.closest('.block')) {
+                        return;
+                    }
+                    
+                    // Calculate click position relative to timeline
+                    const rect = this.timelineContainer.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const clickTimeHours = (clickX / this.containerWidth) * this.totalHours;
+                    const roundedTime = this.roundToNearestHalf(clickTimeHours);
+                    
+                    // Show the popup for block creation
+                    this.showBlockCreationPopup(roundedTime, e);
+                };
+                
+                // Only add the click handler to the timeline itself
+                const timeline = document.querySelector('.timeline');
+                timeline.addEventListener('click', handleTimelineClick);
+                
+                // Remove event handlers from container and grid to ensure only timeline clicks create blocks
+            }
         }
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', () => {
-            new DayPlanner();
+            const planner = new DayPlanner();
         });
     </script>
 </body>
