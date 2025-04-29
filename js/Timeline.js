@@ -129,16 +129,46 @@ export class Timeline {
    */
   initializeHourMarkers() {
     const hoursContainer = document.querySelector('.timeline-hours');
+    const timelineGrid = this.gridElement;
     
     // Clear existing content
     hoursContainer.innerHTML = '';
     
-    // Add hour markers (0-24)
-    for (let hour = 0; hour <= 24; hour++) {
+    // Remove any existing tick marks
+    const existingTicks = document.querySelectorAll('.hour-tick');
+    existingTicks.forEach(tick => tick.remove());
+    
+    // Create a container for tick marks if it doesn't exist
+    let tickContainer = document.querySelector('.timeline-ticks');
+    if (!tickContainer) {
+      tickContainer = document.createElement('div');
+      tickContainer.className = 'timeline-ticks';
+      tickContainer.style.position = 'absolute';
+      tickContainer.style.top = '0';
+      tickContainer.style.left = '0';
+      tickContainer.style.right = '0';
+      tickContainer.style.height = '100%';
+      tickContainer.style.pointerEvents = 'none';
+      tickContainer.style.zIndex = '1';
+      
+      // Insert before the timeline grid to ensure it's behind blocks
+      timelineGrid.parentNode.insertBefore(tickContainer, timelineGrid);
+    }
+    
+    // Add hour markers and ticks (for 24 hours)
+    for (let i = 0; i <= 24; i++) {
+      // Create hour marker
       const hourMarker = document.createElement('div');
       hourMarker.classList.add('hour-marker');
       
+      // Position each marker at the correct percentage
+      hourMarker.style.position = 'absolute';
+      hourMarker.style.left = `${(i / 24) * 100}%`;
+      hourMarker.style.transform = 'translateX(-50%)'; // Center on the tick position
+      
       // Format the hour based on current time format setting
+      const hour = i % 24; // Convert 24 to 0
+      
       if (this.use24HourFormat) {
         hourMarker.textContent = `${hour}h`;
       } else {
@@ -153,6 +183,45 @@ export class Timeline {
       }
       
       hoursContainer.appendChild(hourMarker);
+      
+      // Create tick mark for each hour (not the final 24th hour since it's the same as 0)
+      if (i < 24) {
+        const tick = document.createElement('div');
+        tick.className = 'hour-tick';
+        tick.style.position = 'absolute';
+        tick.style.left = `${(i / 24) * 100}%`;
+        tick.style.top = '0';
+        tick.style.bottom = '0';
+        tick.style.width = '1px';
+        tick.style.backgroundColor = 'rgba(200, 200, 200, 0.3)';
+        tick.style.pointerEvents = 'none';
+        
+        // Add half-hour tick marks (smaller)
+        const halfTick = document.createElement('div');
+        halfTick.className = 'half-hour-tick';
+        halfTick.style.position = 'absolute';
+        halfTick.style.left = `${((i + 0.5) / 24) * 100}%`;
+        halfTick.style.top = '25%';
+        halfTick.style.bottom = '25%';
+        halfTick.style.width = '1px';
+        halfTick.style.backgroundColor = 'rgba(200, 200, 200, 0.2)';
+        halfTick.style.pointerEvents = 'none';
+        
+        tickContainer.appendChild(tick);
+        tickContainer.appendChild(halfTick);
+      }
+    }
+    
+    // Adjust the hours container layout to absolute positioning
+    hoursContainer.style.position = 'relative';
+    hoursContainer.style.height = '25px';
+    hoursContainer.style.marginTop = '10px';
+    
+    // Add CSS for timeline line that represents the full 24 hours
+    const timelineLine = document.querySelector('.timeline-line');
+    if (timelineLine) {
+      timelineLine.style.width = '100%';
+      timelineLine.style.left = '0';
     }
   }
   
