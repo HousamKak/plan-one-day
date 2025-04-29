@@ -254,46 +254,81 @@ export class Block {
    */
   updateLabelVisibility() {
     const titleElement = this.element.querySelector('.block-title');
-    const blockWidth = this.element.offsetWidth;
-    const titleWidth = titleElement.scrollWidth;
     
-    // Create or update label arrow for narrow blocks
-    if (blockWidth < titleWidth + 12) {
-      titleElement.style.opacity = '0';
+    // Always make title visible initially
+    titleElement.style.opacity = '1';
+    
+    // Make sure measurements are accurate
+    setTimeout(() => {
+      const blockWidth = this.element.offsetWidth;
+      const titleWidth = titleElement.scrollWidth;
       
-      if (!this.labelArrow) {
-        this.labelArrow = document.createElement('div');
-        this.labelArrow.classList.add('label-arrow');
-        this.labelArrow.setAttribute('data-block-id', this.id);
-        this.labelArrow.innerHTML = titleElement.innerHTML;
-        this.timeline.gridElement.appendChild(this.labelArrow);
-      } else {
-        // Make sure the label is visible during resize
-        this.labelArrow.style.display = 'block';
+      // Skip if measurements aren't valid
+      if (blockWidth === 0 || titleWidth === 0) {
+        return;
       }
       
-      // Position the label arrow relative to the block
-      setTimeout(() => {
+      if (blockWidth < titleWidth + 12) {
+        // SMALL BLOCK: Needs external label
+        
+        // First create and prepare the label arrow
+        if (!this.labelArrow) {
+          this.labelArrow = document.createElement('div');
+          this.labelArrow.classList.add('label-arrow');
+          this.labelArrow.setAttribute('data-block-id', this.id);
+          this.labelArrow.style.backgroundColor = this.color;
+          
+          // Create container for better styling
+          const labelContent = document.createElement('div');
+          labelContent.className = 'label-content';
+          
+          // Copy content from title element
+          const titleTextElem = titleElement.querySelector('.block-title-text');
+          const timeTextElem = titleElement.querySelector('.block-time-text');
+          
+          if (titleTextElem && timeTextElem) {
+            const labelTitle = document.createElement('span');
+            labelTitle.className = 'block-title-text';
+            labelTitle.textContent = titleTextElem.textContent;
+            
+            const labelTime = document.createElement('span');
+            labelTime.className = 'block-time-text';
+            labelTime.innerHTML = timeTextElem.innerHTML;
+            
+            labelContent.appendChild(labelTitle);
+            labelContent.appendChild(labelTime);
+            this.labelArrow.appendChild(labelContent);
+          }
+          
+          // Add to DOM
+          this.timeline.gridElement.appendChild(this.labelArrow);
+        }
+        
+        // Position the label arrow before making it visible
         const rect = this.element.getBoundingClientRect();
         const gridRect = this.timeline.gridElement.getBoundingClientRect();
         const blockCenter = rect.left + (rect.width / 2) - gridRect.left;
         
-        // Store the natural center position for reference
         this._naturalCenter = blockCenter;
-        
-        // Set an initial position before the timeline positions it
         this.labelArrow.style.left = `${blockCenter}px`;
         
-        // Notify timeline about label update to handle alternating positions
+        // Make the label visible first
+        this.labelArrow.style.display = 'block';
+        
+        // Only hide title after label is ready
+        titleElement.style.opacity = '0';
+        
+        // Update overall label positions
         this.timeline.updateLabelPositions();
-      }, 0);
-    } else {
-      titleElement.style.opacity = '1';
-      
-      if (this.labelArrow) {
-        this.labelArrow.style.display = 'none';
+      } else {
+        // LARGE BLOCK: Show internal title
+        titleElement.style.opacity = '1';
+        
+        if (this.labelArrow) {
+          this.labelArrow.style.display = 'none';
+        }
       }
-    }
+    }, 0);
   }
   
   /**
