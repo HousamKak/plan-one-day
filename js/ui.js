@@ -17,6 +17,7 @@ function init() {
   const overlapToggle = document.getElementById('overlap-toggle');
   const saveButton = document.querySelector('.btn-save');
   const presetSelect = document.getElementById('preset-select');
+  const presetContainer = document.getElementById('preset-container');
   
   // Initialize storage
   const storage = new Storage();
@@ -70,6 +71,11 @@ function init() {
     }
   });
   
+  // Listen for preset updates to add delete buttons
+  document.addEventListener('presets:updated', (event) => {
+    updatePresetsWithDeleteButtons(event.detail.presets, timeline, storage);
+  });
+  
   // Initialize keyboard a11y focus trap in modals
   initializeModalKeyboardHandling();
 }
@@ -91,6 +97,145 @@ function promptForPresetName(timeline, storage) {
       showToast('Error saving preset');
     }
   }
+}
+
+/**
+ * Updates the preset selector to include delete buttons
+ * @param {Array} presets - Array of preset objects
+ * @param {Timeline} timeline - Timeline instance
+ * @param {Storage} storage - Storage instance
+ */
+function updatePresetsWithDeleteButtons(presets, timeline, storage) {
+  if (!presets || !Array.isArray(presets)) return;
+  
+  // Get the DOM elements
+  const presetContainer = document.getElementById('preset-container');
+  const presetSelect = document.getElementById('preset-select');
+  
+  // Create a custom dropdown with delete buttons
+  if (!document.querySelector('.custom-preset-container')) {
+    // Create a container for the custom dropdown
+    const customContainer = document.createElement('div');
+    customContainer.className = 'custom-preset-container';
+    customContainer.style.position = 'absolute';
+    customContainer.style.top = '100%';
+    customContainer.style.left = '0';
+    customContainer.style.width = '100%';
+    customContainer.style.backgroundColor = 'white';
+    customContainer.style.border = '1px solid #dee2e6';
+    customContainer.style.borderRadius = '4px';
+    customContainer.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.08)';
+    customContainer.style.zIndex = '50';
+    customContainer.style.maxHeight = '200px';
+    customContainer.style.overflowY = 'auto';
+    customContainer.style.display = 'none';
+    
+    // Add it to the preset container
+    presetContainer.appendChild(customContainer);
+    
+    // Replace select with a button that shows the custom dropdown
+    const presetButton = document.createElement('button');
+    presetButton.className = 'preset-button';
+    presetButton.style.width = '100%';
+    presetButton.style.textAlign = 'left';
+    presetButton.style.padding = '0.375rem 0.75rem';
+    presetButton.style.border = '1px solid #dee2e6';
+    presetButton.style.borderRadius = '4px';
+    presetButton.style.backgroundColor = 'white';
+    presetButton.style.cursor = 'pointer';
+    presetButton.textContent = 'Load preset';
+    
+    // Hide the original select and insert the button
+    presetSelect.style.display = 'none';
+    presetContainer.insertBefore(presetButton, presetSelect);
+    
+    // Button click handler
+    presetButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = customContainer.style.display === 'block';
+      customContainer.style.display = isVisible ? 'none' : 'block';
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!presetContainer.contains(e.target)) {
+        customContainer.style.display = 'none';
+      }
+    });
+  }
+  
+  // Get the custom container
+  const customContainer = document.querySelector('.custom-preset-container');
+  
+  // Clear existing items
+  customContainer.innerHTML = '';
+  
+  // Add "no presets" message if empty
+  if (presets.length === 0) {
+    const noPresets = document.createElement('div');
+    noPresets.className = 'preset-item';
+    noPresets.style.padding = '0.5rem';
+    noPresets.style.color = '#6c757d';
+    noPresets.textContent = 'No saved presets';
+    customContainer.appendChild(noPresets);
+    return;
+  }
+  
+  // Add items for each preset
+  presets.forEach(preset => {
+    const item = document.createElement('div');
+    item.className = 'preset-item';
+    item.style.display = 'flex';
+    item.style.justifyContent = 'space-between';
+    item.style.alignItems = 'center';
+    item.style.padding = '0.5rem';
+    item.style.cursor = 'pointer';
+    item.style.borderBottom = '1px solid #dee2e6';
+    
+    // Preset name
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = preset.name;
+    item.appendChild(nameSpan);
+    
+    // Delete button
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'preset-delete';
+    deleteButton.setAttribute('aria-label', `Delete preset ${preset.name}`);
+    deleteButton.style.background = 'none';
+    deleteButton.style.border = 'none';
+    deleteButton.style.color = '#dc3545';
+    deleteButton.style.cursor = 'pointer';
+    deleteButton.style.padding = '0.25rem';
+    
+    // Add trash icon
+    const trashTemplate = document.getElementById('trash-icon-template');
+    const trashIcon = trashTemplate.content.cloneNode(true).querySelector('svg');
+    deleteButton.appendChild(trashIcon);
+    
+    // Add delete event
+    deleteButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (confirm(`Are you sure you want to delete the preset "${preset.name}"?`)) {
+        if (storage.deletePreset(preset.name)) {
+          showToast(`Preset "${preset.name}" deleted`);
+        } else {
+          showToast('Error deleting preset');
+        }
+      }
+    });
+    
+    item.appendChild(deleteButton);
+    
+    // Add click event to load preset
+    item.addEventListener('click', (e) => {
+      if (e.target !== deleteButton && !deleteButton.contains(e.target)) {
+        loadPreset(preset.name, timeline, storage);
+        customContainer.style.display = 'none';
+      }
+    });
+    
+    customContainer.appendChild(item);
+  });
 }
 
 /**
@@ -200,4 +345,4 @@ function setupModalKeyboardTrap(modal) {
 document.addEventListener('DOMContentLoaded', init);
 
 // Export for testing
-export { init, showToast, loadPreset };
+export { init, showToast, loadPreset, updatePresetsWithDeleteButtons };

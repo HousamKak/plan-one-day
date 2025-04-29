@@ -85,7 +85,6 @@ export class Block {
       // Create title element
       const titleElement = document.createElement('div');
       titleElement.classList.add('block-title');
-      titleElement.textContent = this.title;
       this.element.appendChild(titleElement);
       
       // Create resize handle
@@ -162,36 +161,36 @@ export class Block {
   }
   
   /**
- * Updates the block label with formatted time
- */
-updateLabel() {
-  const titleElement = this.element.querySelector('.block-title');
-  
-  // Convert hours to HH:MM format
-  const formatTime = (hours) => {
-    const h = Math.floor(hours);
-    const m = Math.round((hours - h) * 60);
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-  };
-  
-  const startTime = formatTime(this.start);
-  const endTime = formatTime((this.start + this.duration) % 24);
-  
-  // Show title above time range with title larger
-  titleElement.innerHTML = `<span class="block-title-text">${this.title}</span>
+   * Updates the block label with formatted time
+   */
+  updateLabel() {
+    const titleElement = this.element.querySelector('.block-title');
+    
+    // Convert hours to HH:MM format
+    const formatTime = (hours) => {
+      const h = Math.floor(hours);
+      const m = Math.round((hours - h) * 60);
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    };
+    
+    const startTime = formatTime(this.start);
+    const endTime = formatTime((this.start + this.duration) % 24);
+    
+    // Show title above time range with title larger
+    titleElement.innerHTML = `<span class="block-title-text">${this.title}</span>
 <span class="block-time-text">${startTime} - ${endTime}</span>`;
-  
-  if (this.labelArrow) {
-    this.labelArrow.innerHTML = `<span class="block-title-text">${this.title}</span>
+    
+    if (this.labelArrow) {
+      this.labelArrow.innerHTML = `<span class="block-title-text">${this.title}</span>
 <span class="block-time-text">${startTime} - ${endTime}</span>`;
+    }
+    
+    if (this.wrapElement) {
+      const wrapTitleElement = this.wrapElement.querySelector('.block-title');
+      wrapTitleElement.innerHTML = `<span class="block-title-text">${this.title}</span>
+<span class="block-time-text">${startTime} - ${endTime}</span>`;
+    }
   }
-  
-  if (this.wrapElement) {
-    const wrapTitleElement = this.wrapElement.querySelector('.block-title');
-    wrapTitleElement.innerHTML = `<span class="block-title-text">${this.title}</span>
-<span class="block-time-text">${startTime} - ${endTime}</span>`;
-  }
-}
   
   /**
    * Updates the label visibility and creates arrow label if needed
