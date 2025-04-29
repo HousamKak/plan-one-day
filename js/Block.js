@@ -74,6 +74,10 @@ export class Block {
     this.resizeLeftStartX = 0;
     this.originalLeft = 0;
     
+    // Add property to prevent flickering during resize
+    this.isResizeInProgress = false;
+    this.labelShownDuringResize = false;
+    
     // Create DOM element
     this.render();
   }
@@ -255,8 +259,10 @@ export class Block {
   updateLabelVisibility() {
     const titleElement = this.element.querySelector('.block-title');
     
-    // Always make title visible initially
-    titleElement.style.opacity = '1';
+    // Always make title visible initially if not resizing
+    if (!this.isResizeInProgress) {
+      titleElement.style.opacity = '1';
+    }
     
     // Make sure measurements are accurate
     setTimeout(() => {
@@ -271,7 +277,7 @@ export class Block {
       if (blockWidth < titleWidth + 12) {
         // SMALL BLOCK: Needs external label
         
-        // First create and prepare the label arrow
+        // First create and prepare the label arrow if it doesn't exist
         if (!this.labelArrow) {
           this.labelArrow = document.createElement('div');
           this.labelArrow.classList.add('label-arrow');
@@ -315,17 +321,32 @@ export class Block {
         // Make the label visible first
         this.labelArrow.style.display = 'block';
         
-        // Only hide title after label is ready
-        titleElement.style.opacity = '0';
+        // Track that label was shown during resize
+        if (this.isResizeInProgress) {
+          this.labelShownDuringResize = true;
+        }
+        
+        // Only hide title if not currently resizing or if we're consistent with it being hidden
+        if (!this.isResizeInProgress || this.labelShownDuringResize) {
+          titleElement.style.opacity = '0';
+        }
         
         // Update overall label positions
         this.timeline.updateLabelPositions();
       } else {
         // LARGE BLOCK: Show internal title
-        titleElement.style.opacity = '1';
         
-        if (this.labelArrow) {
-          this.labelArrow.style.display = 'none';
+        // Only show title if not currently resizing or if we're consistent with it being shown
+        if (!this.isResizeInProgress || !this.labelShownDuringResize) {
+          titleElement.style.opacity = '1';
+        }
+        
+        // Only hide label if not resizing or if we're just starting to resize
+        if (!this.isResizeInProgress) {
+          if (this.labelArrow) {
+            this.labelArrow.style.display = 'none';
+          }
+          this.labelShownDuringResize = false;
         }
       }
     }, 0);
@@ -561,8 +582,12 @@ export class Block {
         });
       }
       
+      // Reset resize state
+      const wasResizing = this.isResizing || this.isResizingLeft;
+      this.isResizeInProgress = false;
+      
       // Dispatch resize end event if we were resizing
-      if (this.isResizing || this.isResizingLeft) {
+      if (wasResizing) {
         document.dispatchEvent(new CustomEvent('block:resize:end', {
           detail: { blockId: this.id }
         }));
@@ -575,8 +600,8 @@ export class Block {
       this.element.style.zIndex = '1';
       this.element.style.cursor = 'grab';
       
-      // Update position
-      this.updatePosition();
+      // Finalize label visibility based on current dimensions
+      this.updateLabelVisibility();
       
       // Remove document-level event listeners
       document.removeEventListener('pointermove', this.handlePointerMove);
@@ -598,6 +623,8 @@ export class Block {
     event.stopPropagation();
     
     this.isResizing = true;
+    this.isResizeInProgress = true;
+    this.labelShownDuringResize = false; // Reset at start of resize
     this.resizeStartX = event.clientX;
     this.originalDuration = this.duration;
     
@@ -620,6 +647,8 @@ export class Block {
     event.stopPropagation();
     
     this.isResizingLeft = true;
+    this.isResizeInProgress = true;
+    this.labelShownDuringResize = false; // Reset at start of resize
     this.resizeLeftStartX = event.clientX;
     this.originalStart = this.start;
     this.originalDuration = this.duration;
