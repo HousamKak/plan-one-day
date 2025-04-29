@@ -212,6 +212,10 @@ export class Block {
     if (this.labelArrow) {
       this.labelArrow.innerHTML = '';
       
+      // Create container for better styling
+      const labelContent = document.createElement('div');
+      labelContent.className = 'label-content';
+      
       const labelTitleSpan = document.createElement('span');
       labelTitleSpan.className = 'block-title-text';
       labelTitleSpan.textContent = this.title;
@@ -220,8 +224,12 @@ export class Block {
       labelTimeSpan.className = 'block-time-text';
       labelTimeSpan.innerHTML = `${startTime} - ${endTime}`;
       
-      this.labelArrow.appendChild(labelTitleSpan);
-      this.labelArrow.appendChild(labelTimeSpan);
+      // Add to container in the desired order (title above time)
+      labelContent.appendChild(labelTitleSpan);
+      labelContent.appendChild(labelTimeSpan);
+      
+      // Add container to label
+      this.labelArrow.appendChild(labelContent);
     }
     
     if (this.wrapElement) {
@@ -305,14 +313,18 @@ export class Block {
       levelIndex = collisionData.level || 0;
     }
     
-    // Calculate the vertical offset based on the level (20px per level)
-    const verticalOffset = levelIndex * 30;
+    // Calculate the vertical offset based on the level (increased from 30 to 40px per level for better separation)
+    const verticalOffset = levelIndex * 40;
     
     // Set the position
     this.labelArrow.style.left = `${finalLeft}px`;
     this.labelArrow.style.bottom = `${120 + verticalOffset}px`;
-    this.labelArrow.style.backgroundColor = this.color;
-    this.labelArrow.style.borderColor = this.color;
+    
+    // Create a lighter version of the block color for the label
+    const lighterColor = this.adjustColorBrightness(this.color, 15); // Make 15% lighter
+    
+    this.labelArrow.style.backgroundColor = lighterColor;
+    this.labelArrow.style.borderColor = lighterColor;
     this.labelArrow.style.display = 'block';
     
     // Adjust the connector line length based on the level
@@ -320,6 +332,27 @@ export class Block {
     
     // Update the ::after pseudo-element height using a custom property
     this.labelArrow.style.setProperty('--connector-height', `${connectorHeight}px`);
+  }
+  
+  /**
+   * Adjusts color brightness by the given percentage
+   * @param {string} color - HSL color string
+   * @param {number} percent - Percentage to lighten (positive) or darken (negative)
+   * @returns {string} - Adjusted HSL color
+   */
+  adjustColorBrightness(color, percent) {
+    // Parse HSL values
+    const match = color.match(/hsl\((\d+),\s*([\d.]+)%,\s*([\d.]+)%\)/);
+    if (!match) return color;
+    
+    let h = parseInt(match[1]);
+    let s = parseFloat(match[2]);
+    let l = parseFloat(match[3]);
+    
+    // Adjust lightness
+    l = Math.min(100, Math.max(0, l + percent));
+    
+    return `hsl(${h}, ${s}%, ${l}%)`;
   }
   
   /**

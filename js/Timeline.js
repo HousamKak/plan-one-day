@@ -599,8 +599,8 @@ export class Timeline {
           const existingLeft = existingCenter - (existingLabelWidth / 2);
           const existingRight = existingCenter + (existingLabelWidth / 2);
           
-          // Check for horizontal overlap with small safety margin (10px)
-          if (labelRight > existingLeft - 10 && labelLeft < existingRight + 10) {
+          // Check for horizontal overlap with increased safety margin (20px)
+          if (labelRight > existingLeft - 20 && labelLeft < existingRight + 20) {
             hasOverlap = true;
             break;
           }
