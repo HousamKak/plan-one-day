@@ -13,6 +13,17 @@ export class Storage {
     
     // Listen for timeline save events
     document.addEventListener('timeline:save-current', this.handleSaveCurrent.bind(this));
+    
+    // Add window unload event to ensure state is saved when leaving the page
+    window.addEventListener('beforeunload', () => {
+      // Dispatch a custom event to trigger saving the current state
+      const currentState = JSON.parse(localStorage.getItem(this.CURRENT_STATE_KEY));
+      if (currentState) {
+        document.dispatchEvent(new CustomEvent('timeline:save-current', {
+          detail: currentState
+        }));
+      }
+    });
   }
   
   /**

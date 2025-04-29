@@ -221,8 +221,9 @@ h1 {
   border-color: var(--accent-color);
 }
 
-/* Neumorphic preset selector */
+/* Preset Button and Dropdown Enhancements */
 .preset-button {
+  width: 150px !important; /* Make wider */
   background-color: var(--neumorph-bg) !important;
   border: none !important;
   border-radius: var(--neumorph-border-radius) !important;
@@ -231,6 +232,10 @@ h1 {
     calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-shadow-dark),
     calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
     calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-light) !important;
+  text-align: left;
+  padding: 0.5rem 1rem;
+  transition: all var(--transition-speed) ease;
+  position: relative;
 }
 
 .preset-button:active {
@@ -241,18 +246,39 @@ h1 {
     calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-light) !important;
 }
 
-/* Preset delete button styling */
+/* Custom preset container with limited height */
+.custom-preset-container {
+  max-height: calc(3 * 40px) !important; /* Show exactly 3 items before scrolling */
+  overflow-y: auto;
+  border-radius: var(--neumorph-border-radius);
+  box-shadow: 
+    var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
+    calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-shadow-dark),
+    calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
+    calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-light);
+  background-color: var(--neumorph-bg);
+  scrollbar-width: thin;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  z-index: 50;
+  margin-top: 4px;
+}
+
 .preset-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
+  padding: 0.5rem 0.75rem;
   height: 40px;
   transition: background-color 0.2s ease;
+  background-color: var(--neumorph-bg);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .preset-item:hover {
-  background-color: rgba(0, 0, 0, 0.03);
+  background-color: var(--neumorph-light);
 }
 
 .preset-item:active {
@@ -277,38 +303,6 @@ h1 {
 .preset-delete svg {
   width: 1rem;
   height: 1rem;
-}
-
-/* Custom preset container with limited height */
-.custom-preset-container {
-  max-height: calc(3 * 40px) !important; /* Show exactly 3 items before scrolling */
-  overflow-y: auto;
-  border-radius: 8px;
-  box-shadow: 
-    var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
-    calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-shadow-dark),
-    calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
-    calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-light);
-  background-color: var(--neumorph-bg);
-  scrollbar-width: thin;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  z-index: 50;
-}
-
-.custom-preset-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-preset-container::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-preset-container::-webkit-scrollbar-thumb {
-  background-color: var(--border-color);
-  border-radius: 3px;
 }
 
 /* Timeline styles */

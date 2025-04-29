@@ -387,6 +387,13 @@ export class Block {
         });
       }
       
+      // Dispatch resize end event if we were resizing
+      if (this.isResizing) {
+        document.dispatchEvent(new CustomEvent('block:resize:end', {
+          detail: { blockId: this.id }
+        }));
+      }
+      
       // Reset state
       this.isDragging = false;
       this.isResizing = false;
@@ -413,6 +420,11 @@ export class Block {
     this.isResizing = true;
     this.resizeStartX = event.clientX;
     this.originalDuration = this.duration;
+    
+    // Dispatch resize start event
+    document.dispatchEvent(new CustomEvent('block:resize:start', {
+      detail: { blockId: this.id }
+    }));
     
     // Add document-level event listeners
     document.addEventListener('pointermove', this.handlePointerMove.bind(this));

@@ -19,11 +19,47 @@ export class Timeline {
     this.isWrappingEnabled = false;
     this.allowOverlap = false;
     
+    // Add a flag to track resize operations
+    this.isResizeInProgress = false;
+    this.resizeGracePeriodTimeout = null;
+    this.resizeGracePeriodDuration = 500; // 500ms grace period
+    
     // Initialize timeline hours
     this.initializeHourMarkers();
     
     // Set up click handler for block creation
     this.gridElement.addEventListener('click', this.handleGridClick.bind(this));
+    
+    // Listen for resize start and end events
+    document.addEventListener('block:resize:start', () => {
+      this.setResizeInProgress(true);
+    });
+    
+    document.addEventListener('block:resize:end', () => {
+      // Set grace period before allowing timeline clicks
+      if (this.resizeGracePeriodTimeout) {
+        clearTimeout(this.resizeGracePeriodTimeout);
+      }
+      
+      this.resizeGracePeriodTimeout = setTimeout(() => {
+        this.setResizeInProgress(false);
+      }, this.resizeGracePeriodDuration);
+    });
+  }
+  
+  /**
+   * Sets the resize in progress flag
+   * @param {boolean} value - Whether resize is in progress
+   */
+  setResizeInProgress(value) {
+    this.isResizeInProgress = value;
+    
+    // Update cursor style on grid to indicate state
+    if (value) {
+      this.gridElement.style.cursor = 'not-allowed';
+    } else {
+      this.gridElement.style.cursor = '';
+    }
   }
   
   /**
@@ -50,7 +86,9 @@ export class Timeline {
    */
   handleGridClick(event) {
     // Ignore if clicked on a block or resize handle
-    if (event.target.closest('.block') || event.target.closest('.block-resize-handle')) {
+    if (event.target.closest('.block') || 
+        event.target.closest('.block-resize-handle') ||
+        this.isResizeInProgress) {
       return;
     }
     

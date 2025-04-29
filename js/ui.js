@@ -128,13 +128,14 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     customContainer.style.top = '100%';
     customContainer.style.left = '0';
     customContainer.style.width = '100%';
-    customContainer.style.backgroundColor = 'white';
-    customContainer.style.border = '1px solid #dee2e6';
-    customContainer.style.borderRadius = '4px';
-    customContainer.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.08)';
+    customContainer.style.backgroundColor = 'var(--neumorph-bg)';
+    customContainer.style.border = 'none';
+    customContainer.style.borderRadius = 'var(--neumorph-border-radius)';
+    customContainer.style.boxShadow = 'var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-shadow-dark), calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-light)';
     customContainer.style.zIndex = '50';
     customContainer.style.maxHeight = '200px';
-    customContainer.style.overflowY = 'auto';
+    // Only show scrollbar when needed (after 3 items)
+    customContainer.style.overflowY = presets.length > 3 ? 'auto' : 'hidden';
     customContainer.style.display = 'none';
     
     // Add it to the preset container
@@ -143,14 +144,14 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     // Replace select with a button that shows the custom dropdown
     presetButton = document.createElement('button');
     presetButton.className = 'preset-button';
-    presetButton.style.width = '100%';
+    presetButton.style.width = '150px'; // Make wider
     presetButton.style.textAlign = 'left';
     presetButton.style.padding = '0.375rem 0.75rem';
-    presetButton.style.border = '1px solid #dee2e6';
-    presetButton.style.borderRadius = '4px';
-    presetButton.style.backgroundColor = 'white';
+    presetButton.style.border = 'none'; // No border for neomorphic style
+    presetButton.style.borderRadius = 'var(--neumorph-border-radius)';
+    presetButton.style.backgroundColor = 'var(--neumorph-bg)';
     presetButton.style.cursor = 'pointer';
-    presetButton.textContent = 'Load preset';
+    presetButton.textContent = 'Load'; // Simplified label
     
     // Hide the original select and insert the button
     presetSelect.style.display = 'none';
@@ -169,6 +170,9 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
         customContainer.style.display = 'none';
       }
     });
+  } else {
+    // Update scrollbar visibility based on item count
+    customContainer.style.overflowY = presets.length > 3 ? 'auto' : 'hidden';
   }
   
   // Clear existing items
@@ -179,7 +183,7 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     const noPresets = document.createElement('div');
     noPresets.className = 'preset-item';
     noPresets.style.padding = '0.5rem';
-    noPresets.style.color = '#6c757d';
+    noPresets.style.color = 'var(--light-text)';
     noPresets.textContent = 'No saved presets';
     customContainer.appendChild(noPresets);
     return;
@@ -192,9 +196,11 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     item.style.display = 'flex';
     item.style.justifyContent = 'space-between';
     item.style.alignItems = 'center';
-    item.style.padding = '0.5rem';
+    item.style.padding = '0.5rem 0.75rem';
     item.style.cursor = 'pointer';
-    item.style.borderBottom = '1px solid #dee2e6';
+    item.style.borderBottom = '1px solid var(--border-color)';
+    item.style.backgroundColor = 'var(--neumorph-bg)';
+    item.style.transition = 'all var(--transition-speed) ease';
     
     // Preset name
     const nameSpan = document.createElement('span');
@@ -207,7 +213,7 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     deleteButton.setAttribute('aria-label', `Delete preset ${preset.name}`);
     deleteButton.style.background = 'none';
     deleteButton.style.border = 'none';
-    deleteButton.style.color = '#dc3545';
+    deleteButton.style.color = 'var(--error-color)';
     deleteButton.style.cursor = 'pointer';
     deleteButton.style.padding = '0.25rem';
     
@@ -233,6 +239,15 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     });
     
     item.appendChild(deleteButton);
+    
+    // Add neomorphic hover effect
+    item.addEventListener('mouseenter', () => {
+      item.style.backgroundColor = 'var(--neumorph-light)';
+    });
+    
+    item.addEventListener('mouseleave', () => {
+      item.style.backgroundColor = 'var(--neumorph-bg)';
+    });
     
     // Add click event to load preset
     item.addEventListener('click', (e) => {
