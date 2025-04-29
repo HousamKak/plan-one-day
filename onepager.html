@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24-Hour Visual Day Planner</title>
+    <style>
+        :root {
+            --primary-color: #3a86ff;
+            --background-color: #f8f9fa;
+            --timeline-color: #dee2e6;
+            --text-color: #212529;
+            --block-colors: #ff006e, #8338ec, #3a86ff, #00c3a3, #fb5607, #ffbe0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 3vh;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+            color: var(--text-color);
+            font-size: 2.5rem;
+        }
+
+        .timeline-container {
+            position: relative;
+            padding: 2rem 0 4rem 0;
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        .timeline {
+            height: 8px;
+            background-color: var(--timeline-color);
+            position: relative;
+            margin: 0 auto;
+            width: 100%;
+            z-index: 1;
+            cursor: pointer;
+        }
+
+        .hour-markers {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+            position: relative;
+            margin-top: 30px;
+        }
+
+        .hour-marker {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: translateX(-50%);
+        }
+
+        .hour-marker::before {
+            content: '';
+            height: 10px;
+            width: 2px;
+            background-color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .hour-label {
+            font-size: 0.8rem;
+            color: var(--text-color);
+            white-space: nowrap;
+        }
+
+        .blocks-container {
+            position: relative;
+            height: 80px;
+            margin-top: -44px;
+            margin-bottom: 40px; /* Added space for external labels */
+        }
+
+        .block {
+            position: absolute;
+            height: 70px;
+            top: -35px;
+            border-radius: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0.5rem;
+            color: white;
+            user-select: none;
+            cursor: move;
+            transition: box-shadow 0.3s, transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            z-index: 2;
+        }
+
+        .block:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .block-dragging {
+            opacity: 0.8;
+            z-index: 10;
+        }
+
+        .block-label {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Improved external label with arrow */
+        .block-external-label {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: visible;
+            background-color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            color: var(--text-color);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        /* Arrow pointing to the block */
+        .block-external-label::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid white;
+        }
+
+        .block-time {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+
+        .resize-handle {
+            position: absolute;
+            width: 10px;
+            height: 100%;
+            top: 0;
+            right: 0;
+            cursor: e-resize;
+        }
+
+        .instructions {
+            text-align: center;
+            color: #6c757d;
+            margin: 2rem auto 0;
+            max-width: 800px;
+            line-height: 1.6;
+        }
+
+        .hour-grid {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            display: flex;
+            pointer-events: none;
+        }
+
+        .hour-grid-line {
+            flex: 1;
+            border-right: 1px dashed rgba(0, 0, 0, 0.1);
+            height: 100%;
+        }
+
+        .hour-grid-line:last-child {
+            border-right: none;
+        }
+
+        /* Block Creation Popup Styles */
+        .block-creation-popup {
+            display: none;
+            position: absolute;
+            z-index: 1000;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 1rem;
+            width: 250px;
+        }
+
+        .block-creation-popup .input-group {
+            margin-bottom: 0.75rem;
+        }
+
+        .block-creation-popup label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .block-creation-popup input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .block-creation-popup .popup-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .block-creation-popup button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .block-creation-popup .cancel-btn {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+
+        .block-creation-popup .cancel-btn:hover {
+            background-color: #dee2e6;
+        }
+
+        .block-creation-popup .create-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .block-creation-popup .create-btn:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .controls-container {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        /* Modified clear all button with hover effect */
+        .controls-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 8px;
+        }
+
+        .controls-button:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Hide button text by default, show on hover */
+        .controls-button .button-text {
+            display: none;
+        }
+        
+        .controls-button:hover .button-text {
+            display: inline;
+        }
+
+        .block-actions {
+            position: absolute;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            padding: 0.75rem;
+            z-index: 100;
+            display: none;
+            min-width: 150px;
+        }
+
+        .block-actions button {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            text-align: left;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .block-actions button:last-child {
+            margin-bottom: 0;
+        }
+
+        .block-actions button:hover {
+            background: #f5f7fa;
+            transform: translateY(-1px);
+        }
+
+        .block-actions button#delete-block:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>24-Hour Visual Day Planner</h1>
+        
+        <div class="controls-container">
+            <button id="clear-all-btn" class="controls-button">
+                <span>🗑️</span><span class="button-text"> Clear All Blocks</span>
+            </button>
+        </div>
+        
+        <div class="timeline-container">
+            <div class="timeline"></div>
+            <div class="hour-markers" id="hour-markers"></div>
+            <div class="hour-grid" id="hour-grid"></div>
+            <div class="blocks-container" id="blocks-container"></div>
+        </div>
+        
+        <div class="instructions">
+            <p>Click on the timeline to add a block • Drag blocks to reposition • Drag right edge to resize • Click a block for more options</p>
+        </div>
+    </div>
+
+    <!-- Block creation popup -->
+    <div class="block-creation-popup" id="block-creation-popup">
+        <div class="input-group">
+            <label for="popup-block-name">Block Name</label>
+            <input type="text" id="popup-block-name" placeholder="Untitled Block">
+        </div>
+        <div class="input-group">
+            <label for="popup-block-duration">Duration (hours)</label>
+            <input type="number" id="popup-block-duration" min="0.5" max="24" step="0.5" value="1">
+        </div>
+        <div class="popup-buttons">
+            <button class="cancel-btn" id="popup-cancel">Cancel</button>
+            <button class="create-btn" id="popup-create">Create Block</button>
+        </div>
+    </div>
+
+    <div class="block-actions" id="block-actions">
+        <button id="edit-block"><span>✏️</span> Edit</button>
+        <button id="duplicate-block"><span>🔄</span> Duplicate</button>
+        <button id="delete-block"><span>🗑️</span> Delete</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // App state
+            const state = {
+                blocks: [],
+                totalHours: 24,
+                colors: ['#ff006e', '#8338ec', '#3a86ff', '#00c3a3', '#fb5607', '#ffbe0b'],
+                storageKey: 'dayPlanner_blocks',
+                isDragging: false,
+                isResizing: false,
+                activeBlock: null,
+                startX: 0,
+                startLeft: 0,
+                startWidth: 0,
+                containerWidth: 0,
+                clickedTimePosition: 0
+            };
+
+            // DOM elements
+            const elements = {
+                timelineContainer: document.querySelector('.timeline-container'),
+                blocksContainer: document.getElementById('blocks-container'),
+                hourMarkers: document.getElementById('hour-markers'),
+                hourGrid: document.getElementById('hour-grid'),
+                blockActions: document.getElementById('block-actions'),
+                clearAllBtn: document.getElementById('clear-all-btn'),
+                blockCreationPopup: document.getElementById('block-creation-popup'),
+                popupBlockName: document.getElementById('popup-block-name'),
+                popupBlockDuration: document.getElementById('popup-block-duration'),
+                popupCancelBtn: document.getElementById('popup-cancel'),
+                popupCreateBtn: document.getElementById('popup-create'),
+                timeline: document.querySelector('.timeline')
+            };
+            
+            // Initialize the app
+            initializeTimeline();
+            setupEventListeners();
+            updateContainerWidth();
+            loadFromLocalStorage();
+            
+            // ---- Core Functions ----
+            
+            // Initialize the timeline with hour markers
+            function initializeTimeline() {
+                // Create hour markers
+                for (let i = 0; i <= state.totalHours; i++) {
+                    const marker = document.createElement('div');
+                    marker.className = 'hour-marker';
+                    marker.style.left = `${(i / state.totalHours) * 100}%`;
+                    
+                    const label = document.createElement('span');
+                    label.className = 'hour-label';
+                    label.textContent = `${i}h`;
+                    
+                    marker.appendChild(label);
+                    elements.hourMarkers.appendChild(marker);
+                }
+                
+                // Create hour grid lines
+                for (let i = 0; i < state.totalHours; i++) {
+                    const gridLine = document.createElement('div');
+                    gridLine.className = 'hour-grid-line';
+                    elements.hourGrid.appendChild(gridLine);
+                }
+            }
+            
+            // Set up all event listeners
+            function setupEventListeners() {
+                // Window resize
+                window.addEventListener('resize', () => {
+                    updateContainerWidth();
+                    state.blocks.forEach(block => checkLabelVisibility(block.id));
+                });
+                
+                // Mouse events for drag and resize
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+                
+                // Touch events for mobile
+                document.addEventListener('touchmove', (e) => {
+                    if (e.touches.length > 0) {
+                        const touch = e.touches[0];
+                        handleMouseMove({ clientX: touch.clientX });
+                    }
+                    if (state.isDragging || state.isResizing) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+                
+                document.addEventListener('touchend', handleMouseUp);
+                
+                // Timeline click for block creation
+                elements.timeline.addEventListener('click', (e) => {
+                    // Calculate click position relative to timeline
+                    const rect = elements.timelineContainer.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const clickTimeHours = (clickX / state.containerWidth) * state.totalHours;
+                    const roundedTime = roundToNearestHalf(clickTimeHours);
+                    
+                    // Show the popup for block creation
+                    showBlockCreationPopup(roundedTime, e);
+                });
+                
+                // Block actions
+                document.getElementById('edit-block').addEventListener('click', editActiveBlock);
+                document.getElementById('duplicate-block').addEventListener('click', duplicateActiveBlock);
+                document.getElementById('delete-block').addEventListener('click', deleteActiveBlock);
+                
+                // Clear all blocks button
+                elements.clearAllBtn.addEventListener('click', clearAllBlocks);
+                
+                // Close block actions menu when clicking elsewhere
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.block') && !e.target.closest('.block-actions')) {
+                        hideBlockActions();
+                    }
+                });
+                
+                // Popup buttons
+                elements.popupCancelBtn.addEventListener('click', hideBlockCreationPopup);
+                elements.popupCreateBtn.addEventListener('click', createBlockFromPopup);
+                
+                // Close popup when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.block-creation-popup') && 
+                        !e.target.closest('.timeline') && 
+                        !e.target.closest('.timeline-container') && 
+                        elements.blockCreationPopup.style.display === 'block') {
+                        hideBlockCreationPopup();
+                    }
+                });
+            }
+            
+            // Update container width measurement
+            function updateContainerWidth() {
+                state.containerWidth = elements.timelineContainer.offsetWidth;
+            }
+            
+            // ---- Block Management Functions ----
+            
+            // Create and render a new block
+            function renderBlock(block) {
+                const blockEl = document.createElement('div');
+                blockEl.className = 'block';
+                blockEl.id = block.id;
+                blockEl.style.backgroundColor = block.color;
+                blockEl.style.left = `${(block.start / state.totalHours) * 100}%`;
+                blockEl.style.width = `${(block.duration / state.totalHours) * 100}%`;
+                
+                // Block content
+                const label = document.createElement('div');
+                label.className = 'block-label';
+                label.textContent = block.name;
+                
+                const time = document.createElement('div');
+                time.className = 'block-time';
+                time.textContent = formatBlockTime(block);
+                
+                blockEl.appendChild(label);
+                blockEl.appendChild(time);
+                
+                // Create external label
+                const externalLabel = document.createElement('div');
+                externalLabel.className = 'block-external-label';
+                externalLabel.textContent = block.name;
+                externalLabel.style.display = 'none'; // Hidden by default
+                blockEl.appendChild(externalLabel);
+                
+                // Resize handle
+                const resizeHandle = document.createElement('div');
+                resizeHandle.className = 'resize-handle';
+                blockEl.appendChild(resizeHandle);
+                
+                // Event listeners
+                blockEl.addEventListener('mousedown', (e) => {
+                    if (e.target.className !== 'resize-handle') {
+                        handleBlockMouseDown(e, block.id);
+                    }
+                });
+                
+                blockEl.addEventListener('touchstart', (e) => {
+                    if (e.touches.length > 0 && e.target.className !== 'resize-handle') {
+                        const touch = e.touches[0];
+                        handleBlockMouseDown({ 
+                            clientX: touch.clientX, 
+                            target: e.target,
+                            preventDefault: () => e.preventDefault()
+                        }, block.id);
+                    }
+                }, { passive: false });
+                
+                resizeHandle.addEventListener('mousedown', (e) => {
+                    handleResizeMouseDown(e, block.id);
+                });
+                
+                resizeHandle.addEventListener('touchstart', (e) => {
+                    if (e.touches.length > 0) {
+                        const touch = e.touches[0];
+                        handleResizeMouseDown({ 
+                            clientX: touch.clientX, 
+                            preventDefault: () => e.preventDefault(),
+                            stopPropagation: () => e.stopPropagation()
+                        }, block.id);
+                    }
+                }, { passive: false });
+                
+                // Click for actions menu
+                blockEl.addEventListener('click', (e) => {
+                    if (!state.isDragging && !state.isResizing) {
+                        showBlockActions(e, block.id);
+                    }
+                });
+                
+                elements.blocksContainer.appendChild(blockEl);
+                
+                // Check if the label fits inside the block
+                setTimeout(() => checkLabelVisibility(block.id), 0);
+            }
+            
+            // Check if a block's label fits and show external label if needed
+            function checkLabelVisibility(blockId) {
+                const blockEl = document.getElementById(blockId);
+                if (!blockEl) return;
+                
+                const labelEl = blockEl.querySelector('.block-label');
+                const externalLabelEl = blockEl.querySelector('.block-external-label');
+                
+                if (!labelEl || !externalLabelEl) return;
+                
+                const textWidth = labelEl.scrollWidth;
+                const blockWidth = blockEl.offsetWidth;
+                
+                // If block is not wide enough for the text, show external label
+                if (blockWidth < textWidth + 20) {
+                    labelEl.style.opacity = '0';
+                    externalLabelEl.style.display = 'block';
+                } else {
+                    labelEl.style.opacity = '1';
+                    externalLabelEl.style.display = 'none';
+                }
+            }
+            
+            // Format time display (e.g., "08:00 - 09:30")
+            function formatBlockTime(block) {
+                const startHour = Math.floor(block.start);
+                const startMin = Math.round((block.start - startHour) * 60);
+                const endTime = block.start + block.duration;
+                const endHour = Math.floor(endTime);
+                const endMin = Math.round((endTime - endHour) * 60);
+                
+                return `${startHour.toString().padStart(2, '0')}:${startMin.toString().padStart(2, '0')} - ${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
+            }
+            
+            // Round a number to the nearest 0.5
+            function roundToNearestHalf(value) {
+                return Math.round(value * 2) / 2;
+            }
+            
+            // Check if a position is already occupied by another block
+            function isPositionOccupied(start, duration) {
+                const end = start + duration;
+                return state.blocks.some(block => {
+                    const blockEnd = block.start + block.duration;
+                    return (start < blockEnd && end > block.start);
+                });
+            }
+            
+            // Update block visual representation
+            function updateBlockVisual(block) {
+                const blockEl = document.getElementById(block.id);
+                if (!blockEl) return;
+                
+                blockEl.style.left = `${(block.start / state.totalHours) * 100}%`;
+                blockEl.style.width = `${(block.duration / state.totalHours) * 100}%`;
+                
+                const timeEl = blockEl.querySelector('.block-time');
+                timeEl.textContent = formatBlockTime(block);
+                
+                const labelEl = blockEl.querySelector('.block-label');
+                labelEl.textContent = block.name;
+                
+                const externalLabelEl = blockEl.querySelector('.block-external-label');
+                if (externalLabelEl) {
+                    externalLabelEl.textContent = block.name;
+                }
+                
+                checkLabelVisibility(block.id);
+            }
+            
+            // ---- Event Handlers ----
+            
+            // Handle mouse down on a block (start dragging)
+            function handleBlockMouseDown(e, blockId) {
+                e.preventDefault();
+                
+                const blockEl = document.getElementById(blockId);
+                state.isDragging = true;
+                state.activeBlock = state.blocks.find(block => block.id === blockId);
+                
+                state.startX = e.clientX;
+                state.startLeft = blockEl.offsetLeft;
+                
+                blockEl.classList.add('block-dragging');
+            }
+            
+            // Handle mouse down on resize handle
+            function handleResizeMouseDown(e, blockId) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const blockEl = document.getElementById(blockId);
+                state.isResizing = true;
+                state.activeBlock = state.blocks.find(block => block.id === blockId);
+                
+                state.startX = e.clientX;
+                state.startWidth = blockEl.offsetWidth;
+                
+                blockEl.classList.add('block-dragging');
+            }
+            
+            // Handle mouse move for dragging or resizing
+            function handleMouseMove(e) {
+                if (!state.isDragging && !state.isResizing) return;
+                if (!state.activeBlock) return;
+                
+                const blockEl = document.getElementById(state.activeBlock.id);
+                if (!blockEl) return;
+                
+                const deltaX = e.clientX - state.startX;
+                
+                if (state.isDragging) {
+                    // Calculate new position
+                    let newLeft = state.startLeft + deltaX;
+                    
+                    // Constrain to timeline bounds
+                    if (newLeft < 0) newLeft = 0;
+                    if (newLeft > state.containerWidth - blockEl.offsetWidth) {
+                        newLeft = state.containerWidth - blockEl.offsetWidth;
+                    }
+                    
+                    // Update visual position
+                    blockEl.style.left = `${newLeft}px`;
+                } else if (state.isResizing) {
+                    // Calculate new width
+                    let newWidth = state.startWidth + deltaX;
+                    
+                    // Constrain minimum width (0.5 hours)
+                    const minWidth = (0.5 / state.totalHours) * state.containerWidth;
+                    if (newWidth < minWidth) newWidth = minWidth;
+                    
+                    // Constrain maximum width (remaining space)
+                    const maxWidth = state.containerWidth - state.startLeft;
+                    if (newWidth > maxWidth) newWidth = maxWidth;
+                    
+                    // Update visual width
+                    blockEl.style.width = `${newWidth}px`;
+                    
+                    // Check if label should be shown inside or outside
+                    checkLabelVisibility(state.activeBlock.id);
+                }
+            }
+            
+            // Handle mouse up (end dragging or resizing)
+            function handleMouseUp() {
+                if (!state.isDragging && !state.isResizing) return;
+                if (!state.activeBlock) return;
+                
+                const blockEl = document.getElementById(state.activeBlock.id);
+                if (!blockEl) return;
+                
+                blockEl.classList.remove('block-dragging');
+                
+                // Calculate new values based on percentages
+                const newStart = (blockEl.offsetLeft / state.containerWidth) * state.totalHours;
+                
+                if (state.isDragging) {
+                    // Update block data
+                    state.activeBlock.start = roundToNearestHalf(newStart);
+                } else if (state.isResizing) {
+                    // Calculate new duration
+                    const newDuration = (blockEl.offsetWidth / state.containerWidth) * state.totalHours;
+                    state.activeBlock.duration = roundToNearestHalf(newDuration);
+                }
+                
+                // Reset drag/resize state
+                state.isDragging = false;
+                state.isResizing = false;
+                
+                // Update block's visual position and time
+                updateBlockVisual(state.activeBlock);
+                
+                // Save to localStorage after update
+                saveToLocalStorage();
+                
+                state.activeBlock = null;
+            }
+            
+            // ---- UI Actions ----
+            
+            // Show action menu for a block
+            function showBlockActions(e, blockId) {
+                state.activeBlock = state.blocks.find(block => block.id === blockId);
+                
+                // Position the menu next to the block
+                const rect = e.target.closest('.block').getBoundingClientRect();
+                elements.blockActions.style.top = `${rect.bottom + 5}px`;
+                elements.blockActions.style.left = `${rect.left + 10}px`;
+                elements.blockActions.style.display = 'block';
+            }
+            
+            // Hide the block actions menu
+            function hideBlockActions() {
+                elements.blockActions.style.display = 'none';
+            }
+            
+            // Show block creation popup
+            function showBlockCreationPopup(timePosition, e) {
+                // Store clicked position
+                state.clickedTimePosition = timePosition;
+                
+                // Reset form fields
+                elements.popupBlockName.value = '';
+                elements.popupBlockDuration.value = '1';
+                
+                // Position popup near click
+                const rect = elements.timelineContainer.getBoundingClientRect();
+                const clickX = e.clientX;
+                const clickY = e.clientY;
+                
+                // Adjust position to not go off-screen
+                let left = clickX - rect.left - 125; // Center the 250px wide popup
+                if (left < 0) left = 0;
+                if (left > rect.width - 250) left = rect.width - 250;
+                
+                elements.blockCreationPopup.style.left = `${left + rect.left}px`;
+                elements.blockCreationPopup.style.top = `${clickY + 20}px`;
+                elements.blockCreationPopup.style.display = 'block';
+                
+                // Focus the name input
+                elements.popupBlockName.focus();
+            }
+            
+            // Hide block creation popup
+            function hideBlockCreationPopup() {
+                elements.blockCreationPopup.style.display = 'none';
+            }
+            
+            // Create block from popup data
+            function createBlockFromPopup() {
+                const name = elements.popupBlockName.value.trim() || 'Untitled Block';
+                const duration = parseFloat(elements.popupBlockDuration.value) || 1;
+                
+                // Validate duration
+                if (duration <= 0 || duration > state.totalHours) {
+                    alert(`Duration must be between 0.5 and ${state.totalHours} hours`);
+                    return;
+                }
+                
+                // Check if position is available
+                if (isPositionOccupied(state.clickedTimePosition, duration)) {
+                    alert('Cannot create block: This time slot is already occupied');
+                    return;
+                }
+                
+                // Create new block at clicked position
+                const newBlock = {
+                    id: 'block_' + Date.now(),
+                    name,
+                    start: state.clickedTimePosition,
+                    duration,
+                    color: state.colors[Math.floor(Math.random() * state.colors.length)]
+                };
+                
+                state.blocks.push(newBlock);
+                renderBlock(newBlock);
+                
+                // Save to localStorage
+                saveToLocalStorage();
+                
+                // Hide the popup
+                hideBlockCreationPopup();
+            }
+            
+            // Edit active block
+            function editActiveBlock() {
+                if (!state.activeBlock) return;
+                
+                const newName = prompt('Enter new name:', state.activeBlock.name);
+                if (newName !== null) {
+                    state.activeBlock.name = newName;
+                    
+                    const newDuration = prompt('Enter new duration (hours):', state.activeBlock.duration);
+                    if (newDuration !== null) {
+                        const duration = parseFloat(newDuration);
+                        if (!isNaN(duration) && duration > 0 && duration <= state.totalHours) {
+                            state.activeBlock.duration = duration;
+                        }
+                    }
+                    
+                    updateBlockVisual(state.activeBlock);
+                    saveToLocalStorage();
+                }
+                
+                hideBlockActions();
+            }
+            
+            // Duplicate active block
+            function duplicateActiveBlock() {
+                if (!state.activeBlock) return;
+                
+                const newBlock = {
+                    id: 'block_' + Date.now(),
+                    name: state.activeBlock.name + ' (Copy)',
+                    start: state.activeBlock.start + 0.5,
+                    duration: state.activeBlock.duration,
+                    color: state.activeBlock.color
+                };
+                
+                // Adjust start time if needed
+                if (newBlock.start + newBlock.duration > state.totalHours) {
+                    newBlock.start = 0;
+                }
+                
+                state.blocks.push(newBlock);
+                renderBlock(newBlock);
+                saveToLocalStorage();
+                
+                hideBlockActions();
+            }
+            
+            // Delete active block
+            function deleteActiveBlock() {
+                if (!state.activeBlock) return;
+                
+                // Remove from DOM
+                const blockEl = document.getElementById(state.activeBlock.id);
+                if (blockEl) blockEl.remove();
+                
+                // Remove from data
+                state.blocks = state.blocks.filter(block => block.id !== state.activeBlock.id);
+                saveToLocalStorage();
+                
+                hideBlockActions();
+            }
+            
+            // Clear all blocks
+            function clearAllBlocks() {
+                if (confirm('Are you sure you want to clear all blocks? This cannot be undone.')) {
+                    elements.blocksContainer.innerHTML = '';
+                    state.blocks = [];
+                    localStorage.removeItem(state.storageKey);
+                }
+            }
+            
+            // ---- Storage Functions ----
+            
+            // Save blocks to localStorage
+            function saveToLocalStorage() {
+                try {
+                    localStorage.setItem(state.storageKey, JSON.stringify(state.blocks));
+                } catch (error) {
+                    console.error('Failed to save blocks to localStorage:', error);
+                }
+            }
+            
+            // Load blocks from localStorage
+            function loadFromLocalStorage() {
+                try {
+                    const savedBlocks = localStorage.getItem(state.storageKey);
+                    if (savedBlocks) {
+                        state.blocks = JSON.parse(savedBlocks);
+                        state.blocks.forEach(block => renderBlock(block));
+                    }
+                } catch (error) {
+                    console.error('Failed to load blocks from localStorage:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
