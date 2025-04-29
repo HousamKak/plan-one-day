@@ -405,5 +405,5 @@ function shuffleBackground() {
     document.body.style.backgroundImage = `url('${backgrounds[currentBackground]}')`;
 }
 
-// Call shuffleBackground every 10 seconds
-setInterval(shuffleBackground, 10000);
+// Call shuffleBackground every 30 seconds
+setInterval(shuffleBackground, 30000);
