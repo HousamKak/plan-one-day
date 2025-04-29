@@ -46,6 +46,29 @@ export class Timeline {
         this.setResizeInProgress(false);
       }, this.resizeGracePeriodDuration);
     });
+    
+    // Add window resize listener to reposition labels
+    window.addEventListener('resize', this.debounce(() => {
+      this.updateLabelPositions();
+    }, 150));
+  }
+  
+  /**
+   * Creates a debounced function that delays invoking func
+   * @param {Function} func - Function to debounce
+   * @param {number} wait - Milliseconds to delay
+   * @returns {Function} - Debounced function
+   */
+  debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
   }
   
   /**
@@ -213,6 +236,11 @@ export class Timeline {
       
       // Close modal
       document.body.removeChild(modal);
+      
+      // Update label positions after a short delay to ensure DOM is updated
+      setTimeout(() => {
+        this.updateLabelPositions();
+      }, 100);
     });
     
     // Cancel button handler
@@ -330,6 +358,11 @@ export class Timeline {
     // Save current state
     this.saveCurrentState();
     
+    // Update label positions after a block is removed
+    setTimeout(() => {
+      this.updateLabelPositions();
+    }, 50);
+    
     return true;
   }
   
@@ -362,6 +395,11 @@ export class Timeline {
     
     // Save current state
     this.saveCurrentState();
+    
+    // Update label positions after duplication
+    setTimeout(() => {
+      this.updateLabelPositions();
+    }, 50);
     
     return newId;
   }
@@ -479,6 +517,118 @@ export class Timeline {
   }
   
   /**
+   * Updates the positions of all label arrows to avoid overlaps
+   */
+  updateLabelPositions() {
+    // Get all visible label arrows
+    const labels = Array.from(this.gridElement.querySelectorAll('.label-arrow'))
+      .filter(label => label.style.display !== 'none');
+    
+    if (labels.length <= 1) return; // No need for collision detection with 0 or 1 label
+    
+    // Sort the blocks by their start time
+    const sortedBlockIds = Array.from(this.blocks.values())
+      .sort((a, b) => a.start - b.start)
+      .map(block => block.id);
+    
+    // Create a map of block IDs to their _naturalCenter value
+    const blockCenters = new Map();
+    for (const label of labels) {
+      const blockId = label.getAttribute('data-block-id');
+      const block = this.blocks.get(blockId);
+      if (block && block._naturalCenter !== undefined) {
+        blockCenters.set(blockId, {
+          center: block._naturalCenter,
+          width: label.offsetWidth,
+          level: 0 // Initial level (vertical stacking level)
+        });
+      }
+    }
+    
+    // Check for overlaps and assign levels
+    this.assignLevelsAndPositions(blockCenters, sortedBlockIds);
+    
+    // Position all labels according to the calculated positions
+    for (const [blockId, data] of blockCenters.entries()) {
+      const block = this.blocks.get(blockId);
+      if (block) {
+        block.positionLabel({
+          adjustedPosition: data.adjustedPosition || data.center,
+          level: data.level || 0
+        });
+      }
+    }
+  }
+  
+  /**
+   * Assigns vertical levels and adjusted horizontal positions to labels
+   * @param {Map} blockCenters - Map of block IDs to their center data
+   * @param {Array} sortedBlockIds - Array of block IDs sorted by start time
+   */
+  assignLevelsAndPositions(blockCenters, sortedBlockIds) {
+    // Group blocks by their vertical level
+    const levelGroups = [[]]; // Start with one empty level
+    
+    for (const blockId of sortedBlockIds) {
+      if (!blockCenters.has(blockId)) continue;
+      
+      const blockData = blockCenters.get(blockId);
+      const labelWidth = blockData.width;
+      const labelCenter = blockData.center;
+      const labelLeft = labelCenter - (labelWidth / 2);
+      const labelRight = labelCenter + (labelWidth / 2);
+      
+      // Find the first level where this label fits without overlap
+      let placedInLevel = false;
+      let currentLevel = 0;
+      
+      while (!placedInLevel) {
+        // Create a new level if needed
+        if (currentLevel >= levelGroups.length) {
+          levelGroups.push([]);
+        }
+        
+        const currentLevelBlocks = levelGroups[currentLevel];
+        let hasOverlap = false;
+        
+        // Check for overlap with any block in this level
+        for (const existingBlockId of currentLevelBlocks) {
+          const existingData = blockCenters.get(existingBlockId);
+          const existingLabelWidth = existingData.width;
+          const existingCenter = existingData.adjustedPosition || existingData.center;
+          const existingLeft = existingCenter - (existingLabelWidth / 2);
+          const existingRight = existingCenter + (existingLabelWidth / 2);
+          
+          // Check for horizontal overlap with small safety margin (10px)
+          if (labelRight > existingLeft - 10 && labelLeft < existingRight + 10) {
+            hasOverlap = true;
+            break;
+          }
+        }
+        
+        if (!hasOverlap) {
+          // This level works, place the label here
+          levelGroups[currentLevel].push(blockId);
+          blockData.level = currentLevel;
+          blockData.adjustedPosition = labelCenter; // No horizontal adjustment needed
+          placedInLevel = true;
+        } else {
+          // Try the next level
+          currentLevel++;
+        }
+      }
+    }
+    
+    // Apply the changes back to the blockCenters map
+    for (let level = 0; level < levelGroups.length; level++) {
+      for (const blockId of levelGroups[level]) {
+        const blockData = blockCenters.get(blockId);
+        blockData.level = level;
+      }
+    }
+  }
+  
+  /**
    * Shuffles blocks randomly and lays them out sequentially
    */
   shuffleBlocks() {
@@ -525,6 +675,11 @@ export class Timeline {
     
     // Save current state
     this.saveCurrentState();
+    
+    // Update label positions after shuffling
+    setTimeout(() => {
+      this.updateLabelPositions();
+    }, 100);
   }
   
   /**
@@ -538,6 +693,11 @@ export class Timeline {
     for (const block of this.blocks.values()) {
       block.setWrappingEnabled(isEnabled);
     }
+    
+    // Update label positions after changing wrap mode
+    setTimeout(() => {
+      this.updateLabelPositions();
+    }, 100);
     
     // Save current state
     this.saveCurrentState();
@@ -636,6 +796,11 @@ export class Timeline {
         this.gridElement.appendChild(block.element);
       }
     }
+    
+    // Update label positions after loading
+    setTimeout(() => {
+      this.updateLabelPositions();
+    }, 150);
   }
   
   /**

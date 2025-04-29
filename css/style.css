@@ -407,7 +407,7 @@ h1 {
   z-index: 5;
 }
 
-/* Enhanced label arrow styling */
+/* Update label arrow styling to support variable connector heights */
 .label-arrow {
   position: absolute;
   background-color: inherit;
@@ -415,7 +415,7 @@ h1 {
   border-radius: 6px;
   font-size: 0.75rem;
   white-space: nowrap;
-  bottom: 120px; /* Moved up to allow space for the connector */
+  bottom: 120px; /* Base position - will be adjusted via JS */
   transform: translateX(-50%);
   z-index: 20;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
@@ -424,33 +424,36 @@ h1 {
   align-items: center;
   pointer-events: none;
   opacity: 0.95;
-  transition: opacity 0.2s ease;
-  animation: fadeInArrow 0.2s ease forwards;
+  transition: all 0.3s ease;
+  animation: fadeInArrow 0.3s ease forwards;
+  --connector-height: 20px; /* Default connector height - can be modified via JS */
 }
 
-/* Connector line between label and block */
+/* Updated connector line with variable height */
 .label-arrow::after {
   content: '';
   position: absolute;
   top: 100%;
   left: 50%;
   width: 2px;
-  height: 20px; /* Length of the connector line */
+  height: var(--connector-height); /* Use the CSS variable for height */
   background-color: inherit;
   transform: translateX(-50%);
+  transition: height 0.3s ease;
 }
 
-/* Arrow head */
+/* Updated arrow head positioning */
 .label-arrow::before {
   content: '';
   position: absolute;
-  top: calc(100% + 20px); /* Position at the end of the connector line */
+  top: calc(100% + var(--connector-height)); /* Position at the end of the connector line */
   left: 50%;
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
   border-top: 5px solid;
   border-top-color: inherit;
   transform: translateX(-50%);
+  transition: top 0.3s ease;
 }
 
 /* Resize handles for both sides */

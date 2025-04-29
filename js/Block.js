@@ -243,6 +243,7 @@ export class Block {
   
   /**
    * Updates the label visibility and creates arrow label if needed
+   * Implements collision detection to prevent overlapping labels
    */
   updateLabelVisibility() {
     const titleElement = this.element.querySelector('.block-title');
@@ -256,6 +257,7 @@ export class Block {
       if (!this.labelArrow) {
         this.labelArrow = document.createElement('div');
         this.labelArrow.classList.add('label-arrow');
+        this.labelArrow.setAttribute('data-block-id', this.id);
         this.labelArrow.innerHTML = titleElement.innerHTML;
         this.timeline.gridElement.appendChild(this.labelArrow);
       }
@@ -266,10 +268,16 @@ export class Block {
         const gridRect = this.timeline.gridElement.getBoundingClientRect();
         const blockCenter = rect.left + (rect.width / 2) - gridRect.left;
         
-        this.labelArrow.style.left = `${blockCenter}px`;
-        this.labelArrow.style.backgroundColor = this.color;
-        this.labelArrow.style.borderColor = this.color;
-        this.labelArrow.style.display = 'block';
+        // Get label width to calculate potential overlapping
+        const labelWidth = this.labelArrow.offsetWidth;
+        
+        // Store the natural center position for reference
+        this._naturalCenter = blockCenter;
+        
+        // Notify timeline about label update to handle collisions
+        this.timeline.updateLabelPositions();
+        
+        // The actual positioning will happen in positionLabel() which is called by the timeline
       }, 0);
     } else {
       titleElement.style.opacity = '1';
@@ -278,6 +286,40 @@ export class Block {
         this.labelArrow.style.display = 'none';
       }
     }
+  }
+  
+  /**
+   * Positions the label arrow with collision avoidance
+   * @param {Object} collisionData - Data about nearby blocks to avoid overlaps
+   * @param {number} levelIndex - Vertical level for the label (0 = default level)
+   */
+  positionLabel(collisionData = null, levelIndex = 0) {
+    if (!this.labelArrow || !this._naturalCenter) return;
+    
+    const labelWidth = this.labelArrow.offsetWidth;
+    let finalLeft = this._naturalCenter;
+    
+    // Apply collision avoidance if provided
+    if (collisionData) {
+      finalLeft = collisionData.adjustedPosition;
+      levelIndex = collisionData.level || 0;
+    }
+    
+    // Calculate the vertical offset based on the level (20px per level)
+    const verticalOffset = levelIndex * 30;
+    
+    // Set the position
+    this.labelArrow.style.left = `${finalLeft}px`;
+    this.labelArrow.style.bottom = `${120 + verticalOffset}px`;
+    this.labelArrow.style.backgroundColor = this.color;
+    this.labelArrow.style.borderColor = this.color;
+    this.labelArrow.style.display = 'block';
+    
+    // Adjust the connector line length based on the level
+    const connectorHeight = 20 + verticalOffset;
+    
+    // Update the ::after pseudo-element height using a custom property
+    this.labelArrow.style.setProperty('--connector-height', `${connectorHeight}px`);
   }
   
   /**
@@ -470,6 +512,11 @@ export class Block {
       // Remove document-level event listeners
       document.removeEventListener('pointermove', this.handlePointerMove);
       document.removeEventListener('pointerup', this.handlePointerUp);
+      
+      // Update label positions to avoid overlaps after drag/resize is complete
+      setTimeout(() => {
+        this.timeline.updateLabelPositions();
+      }, 50);
     }
   }
   
@@ -622,6 +669,11 @@ export class Block {
     }
     
     this.updatePosition();
+    
+    // Update label positions after keyboard movement
+    setTimeout(() => {
+      this.timeline.updateLabelPositions();
+    }, 50);
   }
   
   /**
@@ -675,7 +727,7 @@ export class Block {
   
   /**
    * Creates a duplicate of this block with new ID
-   * @param {string} newId - New ID for the duplicate
+   * @param {string} newId - New ID for the new block
    * @returns {Object} Data for the new block
    */
   duplicate(newId) {
