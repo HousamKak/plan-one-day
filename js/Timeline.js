@@ -13,24 +13,24 @@ export class Timeline {
     if (!gridElement || !(gridElement instanceof HTMLElement)) {
       throw new TypeError('Timeline requires a valid DOM element for the grid');
     }
-    
+
     this.gridElement = gridElement;
     this.blocks = new Map(); // Map of block id -> Block instance
     this.isWrappingEnabled = false;
     this.allowOverlap = false;
     this.use24HourFormat = true; // Default to 24-hour format
-    
+
     // Add a flag to track resize operations
     this.isResizeInProgress = false;
     this.resizeGracePeriodTimeout = null;
     this.resizeGracePeriodDuration = 500; // 500ms grace period
-    
+
     // Initialize timeline hours
     this.initializeHourMarkers();
-    
+
     // Set up click handler for block creation
     this.gridElement.addEventListener('click', this.handleGridClick.bind(this));
-    
+
     // Listen for resize start and end events
     document.addEventListener('block:resize:start', (event) => {
       this.setResizeInProgress(true);
@@ -84,13 +84,13 @@ export class Timeline {
         this.setResizeInProgress(false);
       }, this.resizeGracePeriodDuration);
     });
-    
+
     // Add window resize listener to reposition labels
     window.addEventListener('resize', this.debounce(() => {
       this.updateLabelPositions();
     }, 150));
   }
-  
+
   /**
    * Creates a debounced function that delays invoking func
    * @param {Function} func - Function to debounce
@@ -108,14 +108,14 @@ export class Timeline {
       timeout = setTimeout(later, wait);
     };
   }
-  
+
   /**
    * Sets the resize in progress flag
    * @param {boolean} value - Whether resize is in progress
    */
   setResizeInProgress(value) {
     this.isResizeInProgress = value;
-    
+
     // Update cursor style on grid to indicate state
     if (value) {
       this.gridElement.style.cursor = 'not-allowed';
@@ -123,21 +123,24 @@ export class Timeline {
       this.gridElement.style.cursor = '';
     }
   }
-  
+
   /**
    * Initializes the timeline hour markers
    */
+  /**
+ * Initializes the timeline hour markers
+ */
   initializeHourMarkers() {
     const hoursContainer = document.querySelector('.timeline-hours');
     const timelineGrid = this.gridElement;
-    
+
     // Clear existing content
     hoursContainer.innerHTML = '';
-    
+
     // Remove any existing tick marks
     const existingTicks = document.querySelectorAll('.hour-tick');
     existingTicks.forEach(tick => tick.remove());
-    
+
     // Create a container for tick marks if it doesn't exist
     let tickContainer = document.querySelector('.timeline-ticks');
     if (!tickContainer) {
@@ -150,25 +153,25 @@ export class Timeline {
       tickContainer.style.height = '100%';
       tickContainer.style.pointerEvents = 'none';
       tickContainer.style.zIndex = '1';
-      
+
       // Insert before the timeline grid to ensure it's behind blocks
       timelineGrid.parentNode.insertBefore(tickContainer, timelineGrid);
     }
-    
+
     // Add hour markers and ticks (for 24 hours)
     for (let i = 0; i <= 24; i++) {
       // Create hour marker
       const hourMarker = document.createElement('div');
       hourMarker.classList.add('hour-marker');
-      
+
       // Position each marker at the correct percentage
       hourMarker.style.position = 'absolute';
       hourMarker.style.left = `${(i / 24) * 100}%`;
       hourMarker.style.transform = 'translateX(-50%)'; // Center on the tick position
-      
+
       // Format the hour based on current time format setting
       const hour = i % 24; // Convert 24 to 0
-      
+
       if (this.use24HourFormat) {
         hourMarker.textContent = `${hour}h`;
       } else {
@@ -181,9 +184,9 @@ export class Timeline {
         hourMarker.innerHTML = `${hour12} `;
         hourMarker.appendChild(periodSpan);
       }
-      
+
       hoursContainer.appendChild(hourMarker);
-      
+
       // Create tick mark for each hour (not the final 24th hour since it's the same as 0)
       if (i < 24) {
         const tick = document.createElement('div');
@@ -191,32 +194,32 @@ export class Timeline {
         tick.style.position = 'absolute';
         tick.style.left = `${(i / 24) * 100}%`;
         tick.style.top = '0';
-        tick.style.bottom = '0';
+        tick.style.bottom = '20px'; // Added space at the bottom to separate from numbers
         tick.style.width = '1px';
         tick.style.backgroundColor = 'rgba(200, 200, 200, 0.3)';
         tick.style.pointerEvents = 'none';
-        
+
         // Add half-hour tick marks (smaller)
         const halfTick = document.createElement('div');
         halfTick.className = 'half-hour-tick';
         halfTick.style.position = 'absolute';
         halfTick.style.left = `${((i + 0.5) / 24) * 100}%`;
-        halfTick.style.top = '25%';
-        halfTick.style.bottom = '25%';
+        halfTick.style.top = '10%';
+        halfTick.style.bottom = '50px'; // Added space at the bottom to separate from numbers
         halfTick.style.width = '1px';
         halfTick.style.backgroundColor = 'rgba(200, 200, 200, 0.2)';
         halfTick.style.pointerEvents = 'none';
-        
+
         tickContainer.appendChild(tick);
         tickContainer.appendChild(halfTick);
       }
     }
-    
+
     // Adjust the hours container layout to absolute positioning
     hoursContainer.style.position = 'relative';
     hoursContainer.style.height = '25px';
-    hoursContainer.style.marginTop = '10px';
-    
+    hoursContainer.style.marginTop = '40px'; // Increased for more space between ticks and numbers
+
     // Add CSS for timeline line that represents the full 24 hours
     const timelineLine = document.querySelector('.timeline-line');
     if (timelineLine) {
@@ -224,61 +227,61 @@ export class Timeline {
       timelineLine.style.left = '0';
     }
   }
-  
+
   /**
    * Updates the time format and refreshes all displays
    * @param {boolean} use24Hour - Whether to use 24-hour format
    */
   setTimeFormat(use24Hour) {
     this.use24HourFormat = use24Hour;
-    
+
     // Update hour markers
     this.initializeHourMarkers();
-    
+
     // Update all blocks
     for (const block of this.blocks.values()) {
       block.setTimeFormat(use24Hour);
     }
-    
+
     // Save current state
     this.saveCurrentState();
   }
-  
+
   /**
    * Handles click on the timeline grid to create a new block
    * @param {MouseEvent} event - Click event
    */
   handleGridClick(event) {
     // Ignore if clicked on a block or resize handle
-    if (event.target.closest('.block') || 
-        event.target.closest('.block-resize-handle-left') ||
-        event.target.closest('.block-resize-handle-right') ||
-        this.isResizeInProgress) {
+    if (event.target.closest('.block') ||
+      event.target.closest('.block-resize-handle-left') ||
+      event.target.closest('.block-resize-handle-right') ||
+      this.isResizeInProgress) {
       return;
     }
-    
+
     // Get the position of the timeline line
     const timelineRect = document.querySelector('.timeline-line').getBoundingClientRect();
     const clickY = event.clientY;
-    
+
     // Only create a block if clicked within 20px of the timeline line
-    if (Math.abs(clickY - (timelineRect.top + timelineRect.height/2)) > 20) {
+    if (Math.abs(clickY - (timelineRect.top + timelineRect.height / 2)) > 20) {
       return;
     }
-    
+
     // Calculate click position in hours
     const rect = this.gridElement.getBoundingClientRect();
     const totalWidth = rect.width;
     const offsetX = event.clientX - rect.left;
     const clickHour = (offsetX / totalWidth) * 24;
-    
+
     // Round to nearest 0.25 hour
     const startHour = Math.max(0, Math.min(24, Math.round(clickHour * 4) / 4));
-    
+
     // Open creation modal
     this.openBlockModal(startHour);
   }
-  
+
   /**
    * Opens the block creation/edit modal
    * @param {number} startHour - Starting hour for the new block
@@ -288,18 +291,18 @@ export class Timeline {
     // Get template content
     const template = document.getElementById('block-modal-template');
     const modal = template.content.cloneNode(true).querySelector('.modal');
-    
+
     // Set title based on operation
     const modalTitle = modal.querySelector('h2');
     modalTitle.textContent = blockId ? 'Edit Block' : 'Create Block';
-    
+
     // Get form elements
     const form = modal.querySelector('#block-form');
     const titleInput = modal.querySelector('#block-title');
     const durationInput = modal.querySelector('#block-duration');
     const colorInput = modal.querySelector('#block-color');
     const colorPreview = modal.querySelector('.color-preview');
-    
+
     // Set values if editing
     if (blockId) {
       const block = this.blocks.get(blockId);
@@ -316,22 +319,22 @@ export class Timeline {
       colorInput.value = hexColor;
       colorPreview.style.backgroundColor = hexColor;
     }
-    
+
     // Add color input change handler
     colorInput.addEventListener('input', () => {
       colorPreview.style.backgroundColor = colorInput.value;
     });
-    
+
     // Form submit handler
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      
+
       const blockData = {
         title: titleInput.value,
         duration: parseFloat(durationInput.value),
         color: colorInput.value
       };
-      
+
       if (blockId) {
         // Update existing block
         this.updateBlock(blockId, blockData);
@@ -340,28 +343,28 @@ export class Timeline {
         blockData.start = startHour;
         this.addBlock(blockData);
       }
-      
+
       // Close modal
       document.body.removeChild(modal);
-      
+
       // Update label positions after a short delay to ensure DOM is updated
       setTimeout(() => {
         this.updateLabelPositions();
       }, 100);
     });
-    
+
     // Cancel button handler
     modal.querySelector('.cancel-btn').addEventListener('click', () => {
       document.body.removeChild(modal);
     });
-    
+
     // Append modal to body
     document.body.appendChild(modal);
-    
+
     // Focus title input
     titleInput.focus();
   }
-  
+
   /**
    * Adds a new block to the timeline
    * @param {Object} blockData - Block data without ID
@@ -370,7 +373,7 @@ export class Timeline {
   addBlock(blockData) {
     // Generate a unique ID
     const id = this.generateUniqueId();
-    
+
     // Create complete block data
     const completeData = {
       id,
@@ -379,27 +382,27 @@ export class Timeline {
       duration: blockData.duration,
       color: this.hexToHsl(blockData.color)
     };
-    
+
     // Create block instance
     const block = new Block(completeData, this, this.isWrappingEnabled, this.use24HourFormat);
-    
+
     // Check for conflicts if overlap is not allowed
     if (!this.allowOverlap && this.hasConflict(block)) {
       block.remove();
       this.showToast('Time conflict');
       return null;
     }
-    
+
     // Add to collection and DOM
     this.blocks.set(id, block);
     this.gridElement.appendChild(block.element);
-    
+
     // Save current state
     this.saveCurrentState();
-    
+
     return id;
   }
-  
+
   /**
    * Updates an existing block
    * @param {string} id - Block ID
@@ -409,12 +412,12 @@ export class Timeline {
   updateBlock(id, data) {
     const block = this.blocks.get(id);
     if (!block) return false;
-    
+
     // Create a temporary copy to check for conflicts
-    if (!this.allowOverlap && 
-        ((data.start !== undefined && data.start !== block.start) || 
+    if (!this.allowOverlap &&
+      ((data.start !== undefined && data.start !== block.start) ||
         (data.duration !== undefined && data.duration !== block.duration))) {
-      
+
       const testBlock = new Block({
         id: 'temp-test',
         title: block.title,
@@ -422,31 +425,31 @@ export class Timeline {
         duration: data.duration !== undefined ? data.duration : block.duration,
         color: block.color
       }, this, this.isWrappingEnabled, this.use24HourFormat);
-      
+
       // Check for conflicts excluding the block being updated
       const hasConflict = this.hasConflict(testBlock, id);
       testBlock.remove();
-      
+
       if (hasConflict) {
         this.showToast('Time conflict');
         return false;
       }
     }
-    
+
     // Convert color from hex to hsl if provided
     if (data.color && data.color.startsWith('#')) {
       data.color = this.hexToHsl(data.color);
     }
-    
+
     // Update the block
     block.update(data);
-    
+
     // Save current state
     this.saveCurrentState();
-    
+
     return true;
   }
-  
+
   /**
    * Removes a block from the timeline
    * @param {string} id - Block ID
@@ -455,24 +458,24 @@ export class Timeline {
   removeBlock(id) {
     const block = this.blocks.get(id);
     if (!block) return false;
-    
+
     // Remove from DOM
     block.remove();
-    
+
     // Remove from collection
     this.blocks.delete(id);
-    
+
     // Save current state
     this.saveCurrentState();
-    
+
     // Update label positions after a block is removed
     setTimeout(() => {
       this.updateLabelPositions();
     }, 50);
-    
+
     return true;
   }
-  
+
   /**
    * Duplicates a block
    * @param {string} id - Block ID
@@ -481,36 +484,36 @@ export class Timeline {
   duplicateBlock(id) {
     const originalBlock = this.blocks.get(id);
     if (!originalBlock) return null;
-    
+
     // Generate a unique ID
     const newId = this.generateUniqueId();
-    
+
     // Get data for the new block
     const newBlockData = originalBlock.duplicate(newId);
-    
+
     // Adjust start time to avoid overlaps if overlap is not allowed
     if (!this.allowOverlap) {
       this.adjustStartToAvoidConflicts(newBlockData);
     }
-    
+
     // Create a new block instance
     const newBlock = new Block(newBlockData, this, this.isWrappingEnabled, this.use24HourFormat);
-    
+
     // Add to collection and DOM
     this.blocks.set(newId, newBlock);
     this.gridElement.appendChild(newBlock.element);
-    
+
     // Save current state
     this.saveCurrentState();
-    
+
     // Update label positions after duplication
     setTimeout(() => {
       this.updateLabelPositions();
     }, 50);
-    
+
     return newId;
   }
-  
+
   /**
    * Edits an existing block
    * @param {string} id - Block ID
@@ -518,10 +521,10 @@ export class Timeline {
   editBlock(id) {
     const block = this.blocks.get(id);
     if (!block) return;
-    
+
     this.openBlockModal(block.start, id);
   }
-  
+
   /**
    * Checks if a block has time conflicts with others
    * @param {Block} block - Block to check
@@ -531,20 +534,20 @@ export class Timeline {
   hasConflict(block, excludeId = null) {
     // Skip check if overlap is allowed or no blocks
     if (this.allowOverlap || this.blocks.size === 0) return false;
-    
+
     for (const [id, existingBlock] of this.blocks.entries()) {
       // Skip the block itself if it's the one being updated
       if (id === excludeId || id === block.id) continue;
-      
+
       // Check for overlap
       if (this.blocksOverlap(block, existingBlock)) {
         return true;
       }
     }
-    
+
     return false;
   }
-  
+
   /**
    * Checks if two blocks overlap in time
    * @param {Block} a - First block
@@ -556,7 +559,7 @@ export class Timeline {
       // Standard overlap check
       const aEnd = a.start + a.duration;
       const bEnd = b.start + b.duration;
-      
+
       return (a.start < bEnd && aEnd > b.start);
     } else {
       // Wrap-around overlap check requires modulo arithmetic
@@ -565,14 +568,14 @@ export class Timeline {
       const aEnd = (aStart + a.duration * 60) % 1440;
       const bStart = (b.start * 60) % 1440;
       const bEnd = (bStart + b.duration * 60) % 1440;
-      
+
       // Handle special case where a block spans a full 24 hours
       if (a.duration >= 24 || b.duration >= 24) return true;
-      
+
       // Check if either block wraps around midnight
       const aWraps = aEnd <= aStart;
       const bWraps = bEnd <= bStart;
-      
+
       if (!aWraps && !bWraps) {
         // Neither block wraps, standard check
         return (aStart < bEnd && aEnd > bStart);
@@ -588,7 +591,7 @@ export class Timeline {
       }
     }
   }
-  
+
   /**
    * Recursively adjusts start time to avoid conflicts
    * @param {Object} blockData - Block data to adjust
@@ -601,20 +604,20 @@ export class Timeline {
       duration: blockData.duration,
       color: blockData.color
     }, this, this.isWrappingEnabled, this.use24HourFormat);
-    
+
     // Check for conflicts
     if (this.hasConflict(testBlock)) {
       // Adjust start time forward by 0.25 hours
       blockData.start = (blockData.start + 0.25) % 24;
-      
+
       // If we've exceeded the timeline end and wrapping is disabled, stop
       if (!this.isWrappingEnabled && blockData.start + blockData.duration > 24) {
         blockData.start = 0;
       }
-      
+
       // Remove test block
       testBlock.remove();
-      
+
       // Recur to check again
       this.adjustStartToAvoidConflicts(blockData);
     } else {
@@ -622,7 +625,7 @@ export class Timeline {
       testBlock.remove();
     }
   }
-  
+
   /**
    * Updates the positions of all label arrows to avoid overlaps
    */
@@ -630,21 +633,21 @@ export class Timeline {
     // Get all visible label arrows
     const labels = Array.from(this.gridElement.querySelectorAll('.label-arrow'))
       .filter(label => label.style.display !== 'none');
-    
+
     if (labels.length <= 1) return; // No need for collision detection with 0 or 1 label
-    
+
     // Sort labels by their horizontal position (left to right)
     const sortedLabels = labels.sort((a, b) => {
       const aRect = a.getBoundingClientRect();
       const bRect = b.getBoundingClientRect();
       return aRect.left - bRect.left;
     });
-    
+
     // Assign alternating positions (top/bottom)
     sortedLabels.forEach((label, index) => {
       const blockId = label.getAttribute('data-block-id');
       const block = this.blocks.get(blockId);
-      
+
       if (block) {
         // Simple alternating pattern - even indices go top, odd go bottom
         const position = index % 2 === 0 ? 'top' : 'bottom';
@@ -652,26 +655,26 @@ export class Timeline {
       }
     });
   }
-  
+
   /**
    * Shuffles blocks randomly and lays them out sequentially
    */
   shuffleBlocks() {
     if (this.blocks.size === 0) return;
-    
+
     // Convert blocks to array
     const blockArray = Array.from(this.blocks.values());
-    
+
     // Fisher-Yates shuffle
     for (let i = blockArray.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [blockArray[i], blockArray[j]] = [blockArray[j], blockArray[i]];
     }
-    
+
     // Lay out sequentially
     let currentStart = 0;
     let overflow = false;
-    
+
     for (const block of blockArray) {
       // Check if block fits within 24 hours if wrap is disabled
       if (!this.isWrappingEnabled && currentStart + block.duration > 24) {
@@ -681,7 +684,7 @@ export class Timeline {
           break;
         }
       }
-      
+
       // Update block position
       if (this.updateBlock(block.id, { start: currentStart })) {
         // Move to next position only if update was successful
@@ -692,53 +695,53 @@ export class Timeline {
         }
       }
     }
-    
+
     // Show toast if overflow occurred
     if (overflow) {
       this.showToast('Not enough space - some blocks may not be visible');
     }
-    
+
     // Save current state
     this.saveCurrentState();
-    
+
     // Update label positions after shuffling
     setTimeout(() => {
       this.updateLabelPositions();
     }, 100);
   }
-  
+
   /**
    * Updates the wrap-around setting for all blocks
    * @param {boolean} isEnabled - Whether wrap is enabled
    */
   setWrappingEnabled(isEnabled) {
     this.isWrappingEnabled = isEnabled;
-    
+
     // Update all blocks
     for (const block of this.blocks.values()) {
       block.setWrappingEnabled(isEnabled);
     }
-    
+
     // Update label positions after changing wrap mode
     setTimeout(() => {
       this.updateLabelPositions();
     }, 100);
-    
+
     // Save current state
     this.saveCurrentState();
   }
-  
+
   /**
    * Updates the overlap setting
    * @param {boolean} isAllowed - Whether overlap is allowed
    */
   setOverlapAllowed(isAllowed) {
     this.allowOverlap = isAllowed;
-    
+
     // Save current state
     this.saveCurrentState();
   }
-  
+
   /**
    * Shows a toast notification
    * @param {string} message - Message to display
@@ -747,13 +750,13 @@ export class Timeline {
     // Get template content
     const template = document.getElementById('toast-template');
     const toast = template.content.cloneNode(true).querySelector('.toast');
-    
+
     // Set message
     toast.textContent = message;
-    
+
     // Add to DOM
     document.body.appendChild(toast);
-    
+
     // Remove after animation
     setTimeout(() => {
       if (toast.parentNode) {
@@ -761,7 +764,7 @@ export class Timeline {
       }
     }, 3000);
   }
-  
+
   /**
    * Clears all blocks from the timeline
    */
@@ -770,25 +773,25 @@ export class Timeline {
     for (const block of this.blocks.values()) {
       block.remove();
     }
-    
+
     // Clear collection
     this.blocks.clear();
-    
+
     // Save current state
     this.saveCurrentState();
   }
-  
+
   /**
    * Serializes timeline data for storage
    * @returns {Object} - Serialized timeline data
    */
   serialize() {
     const blocks = [];
-    
+
     for (const block of this.blocks.values()) {
       blocks.push(block.serialize());
     }
-    
+
     return {
       blocks,
       isWrappingEnabled: this.isWrappingEnabled,
@@ -796,7 +799,7 @@ export class Timeline {
       use24HourFormat: this.use24HourFormat
     };
   }
-  
+
   /**
    * Deserializes timeline data and loads it
    * @param {Object} data - Serialized timeline data
@@ -804,15 +807,15 @@ export class Timeline {
   deserialize(data) {
     // Clear existing blocks
     this.clearTimeline();
-    
+
     // Set state properties
     this.isWrappingEnabled = data.isWrappingEnabled || false;
     this.allowOverlap = data.allowOverlap || false;
     this.use24HourFormat = data.use24HourFormat !== undefined ? data.use24HourFormat : true;
-    
+
     // Update hour markers for the current time format
     this.initializeHourMarkers();
-    
+
     // Add blocks
     if (data.blocks && Array.isArray(data.blocks)) {
       for (const blockData of data.blocks) {
@@ -821,13 +824,13 @@ export class Timeline {
         this.gridElement.appendChild(block.element);
       }
     }
-    
+
     // Update label positions after loading
     setTimeout(() => {
       this.updateLabelPositions();
     }, 150);
   }
-  
+
   /**
    * Saves the current timeline state to localStorage
    */
@@ -838,7 +841,7 @@ export class Timeline {
     });
     document.dispatchEvent(event);
   }
-  
+
   /**
    * Generates a unique ID for a block
    * @returns {string} - Unique ID
@@ -846,7 +849,7 @@ export class Timeline {
   generateUniqueId() {
     return 'block_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
-  
+
   /**
    * Generates a color based on existing blocks
    * @returns {string} - Hex color
@@ -856,11 +859,11 @@ export class Timeline {
     const hue = Math.floor(Math.random() * 360);
     const saturation = 65 + Math.random() * 10;
     const lightness = 45 + Math.random() * 10;
-    
+
     // Convert to hex for input compatibility
     return this.hslToHex(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
   }
-  
+
   /**
    * Converts HSL color string to hex
    * @param {string} hsl - HSL color string
@@ -870,17 +873,17 @@ export class Timeline {
     // Parse HSL values
     const match = hsl.match(/hsl\((\d+),\s*([\d.]+)%,\s*([\d.]+)%\)/);
     if (!match) return '#3a86ff';
-    
+
     let h = parseInt(match[1]);
     let s = parseFloat(match[2]) / 100;
     let l = parseFloat(match[3]) / 100;
-    
+
     // HSL to RGB conversion
     let c = (1 - Math.abs(2 * l - 1)) * s;
     let x = c * (1 - Math.abs((h / 60) % 2 - 1));
     let m = l - c / 2;
     let r, g, b;
-    
+
     if (h >= 0 && h < 60) {
       [r, g, b] = [c, x, 0];
     } else if (h >= 60 && h < 120) {
@@ -894,15 +897,15 @@ export class Timeline {
     } else {
       [r, g, b] = [c, 0, x];
     }
-    
+
     // Convert to hex
     r = Math.round((r + m) * 255).toString(16).padStart(2, '0');
     g = Math.round((g + m) * 255).toString(16).padStart(2, '0');
     b = Math.round((b + m) * 255).toString(16).padStart(2, '0');
-    
+
     return `#${r}${g}${b}`;
   }
-  
+
   /**
    * Converts hex color to HSL
    * @param {string} hex - Hex color string
@@ -911,35 +914,35 @@ export class Timeline {
   hexToHsl(hex) {
     // Remove # if present
     hex = hex.replace(/^#/, '');
-    
+
     // Parse hex values
     let r = parseInt(hex.slice(0, 2), 16) / 255;
     let g = parseInt(hex.slice(2, 4), 16) / 255;
     let b = parseInt(hex.slice(4, 6), 16) / 255;
-    
+
     // Find min and max values
     let max = Math.max(r, g, b);
     let min = Math.min(r, g, b);
     let h, s, l = (max + min) / 2;
-    
+
     if (max === min) {
       h = s = 0; // achromatic
     } else {
       let d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      
+
       switch (max) {
         case r: h = (g - b) / d + (g < b ? 6 : 0); break;
         case g: h = (b - r) / d + 2; break;
         case b: h = (r - g) / d + 4; break;
       }
-      
+
       h = Math.round(h * 60);
     }
-    
+
     s = Math.round(s * 100);
     l = Math.round(l * 100);
-    
+
     return `hsl(${h}, ${s}%, ${l}%)`;
   }
 }
