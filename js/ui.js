@@ -395,3 +395,15 @@ document.addEventListener('DOMContentLoaded', init);
 
 // Export for testing
 export { init, showToast, loadPreset, updatePresetsWithDeleteButtons };
+let currentBackground = 0;
+const backgrounds = ['image.png', 'image2.webp','image3.jpg', 'image4.jpg', 'image5.webp'];
+
+document.body.style.transition = 'background-image 1s ease-in-out';
+
+function shuffleBackground() {
+    currentBackground = (currentBackground + 1) % backgrounds.length;
+    document.body.style.backgroundImage = `url('${backgrounds[currentBackground]}')`;
+}
+
+// Call shuffleBackground every 10 seconds
+setInterval(shuffleBackground, 10000);
