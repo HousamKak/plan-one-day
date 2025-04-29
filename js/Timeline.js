@@ -50,7 +50,16 @@ export class Timeline {
    */
   handleGridClick(event) {
     // Ignore if clicked on a block
-    if (event.target !== this.gridElement && event.target.closest('.block')) return;
+    if (event.target.closest('.block')) return;
+    
+    // Get the position of the timeline line
+    const timelineRect = document.querySelector('.timeline-line').getBoundingClientRect();
+    const clickY = event.clientY;
+    
+    // Only create a block if clicked within 20px of the timeline line
+    if (Math.abs(clickY - (timelineRect.top + timelineRect.height/2)) > 20) {
+      return;
+    }
     
     // Calculate click position in hours
     const rect = this.gridElement.getBoundingClientRect();
@@ -84,6 +93,7 @@ export class Timeline {
     const titleInput = modal.querySelector('#block-title');
     const durationInput = modal.querySelector('#block-duration');
     const colorInput = modal.querySelector('#block-color');
+    const colorPreview = modal.querySelector('.color-preview');
     
     // Set values if editing
     if (blockId) {
@@ -91,12 +101,21 @@ export class Timeline {
       if (block) {
         titleInput.value = block.title;
         durationInput.value = block.duration;
-        colorInput.value = this.hslToHex(block.color);
+        const hexColor = this.hslToHex(block.color);
+        colorInput.value = hexColor;
+        colorPreview.style.backgroundColor = hexColor;
       }
     } else {
       // For new blocks, generate a color based on existing blocks
-      colorInput.value = this.generateColor();
+      const hexColor = this.generateColor();
+      colorInput.value = hexColor;
+      colorPreview.style.backgroundColor = hexColor;
     }
+    
+    // Add color input change handler
+    colorInput.addEventListener('input', () => {
+      colorPreview.style.backgroundColor = colorInput.value;
+    });
     
     // Form submit handler
     form.addEventListener('submit', (e) => {
@@ -407,19 +426,26 @@ export class Timeline {
       // Check if block fits within 24 hours if wrap is disabled
       if (!this.isWrappingEnabled && currentStart + block.duration > 24) {
         overflow = true;
-        break;
+        // If overlap is allowed, continue placing blocks beyond 24h
+        if (!this.allowOverlap) {
+          break;
+        }
       }
       
       // Update block position
-      this.updateBlock(block.id, { start: currentStart });
-      
-      // Move to next position
-      currentStart = (currentStart + block.duration) % 24;
+      if (this.updateBlock(block.id, { start: currentStart })) {
+        // Move to next position only if update was successful
+        currentStart = (currentStart + block.duration) % 24;
+        if (!this.isWrappingEnabled && !this.allowOverlap) {
+          // For non-wrapping mode without overlap, we use absolute positions
+          currentStart = Math.min(24, currentStart);
+        }
+      }
     }
     
     // Show toast if overflow occurred
     if (overflow) {
-      this.showToast('Not enough space');
+      this.showToast('Not enough space - some blocks may not be visible');
     }
     
     // Save current state
