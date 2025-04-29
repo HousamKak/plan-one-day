@@ -677,3 +677,19 @@ h1 {
     width: 100%;
   }
 }
+
+/* Update toggled state to keep the icon white while maintaining neomorphism */
+.btn-toggle[aria-pressed="true"] {
+  color: white; /* Keep the icon white */
+  background-color: #a6a6a6; /* Lighter shade for background */
+  box-shadow: inset var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-dark),
+              inset calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-light);
+}
+
+/* Add specific styles for the 12/24 format toggle to ensure it remains unaffected */
+#time-format-toggle[aria-pressed="true"] {
+  color: var(--light-text); /* Default color */
+  background-color: var(--neumorph-bg); /* Default background */
+  box-shadow: var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-shadow-dark),
+              calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-light);
+}

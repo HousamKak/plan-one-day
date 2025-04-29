@@ -55,8 +55,10 @@ function init() {
   wrapToggle.addEventListener('click', () => {
     const isCurrentlyEnabled = wrapToggle.getAttribute('aria-pressed') === 'true';
     const newState = !isCurrentlyEnabled;
-    
+
     wrapToggle.setAttribute('aria-pressed', newState ? 'true' : 'false');
+    wrapToggle.style.color = newState ? 'f0f0f3' : '6c757d';
+    wrapToggle.style.backgroundColor = newState ? '6c757d' : 'f0f0f3';
     timeline.setWrappingEnabled(newState);
   });
   
@@ -64,8 +66,10 @@ function init() {
   overlapToggle.addEventListener('click', () => {
     const isCurrentlyEnabled = overlapToggle.getAttribute('aria-pressed') === 'true';
     const newState = !isCurrentlyEnabled;
-    
+
     overlapToggle.setAttribute('aria-pressed', newState ? 'true' : 'false');
+    overlapToggle.style.color = newState ? 'f0f0f3' : '6c757d';
+    overlapToggle.style.backgroundColor = newState ? '6c757d' : 'f0f0f3';
     timeline.setOverlapAllowed(newState);
   });
   
