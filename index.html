@@ -28,11 +28,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center; /* Added to center content vertically */
         }
 
         .container {
             width: 100%;
             max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; /* Added for vertical centering */
         }
 
         h1 {
@@ -129,6 +134,26 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        /* New style for external labels */
+        .block-external-label {
+            position: absolute;
+            top: -30px; /* Position above the block */
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2px 6px;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            color: var(--text-color);
+            z-index: 3;
+            display: none; /* Hidden by default, shown when needed */
         }
 
         .block-time {
@@ -394,7 +419,11 @@
                 
                 // Initial setup
                 this.updateContainerWidth();
-                window.addEventListener('resize', () => this.updateContainerWidth());
+                window.addEventListener('resize', () => {
+                    this.updateContainerWidth();
+                    // Check all blocks for label visibility after resize
+                    this.blocks.forEach(block => this.checkLabelVisibility(block.id));
+                });
                 
                 // Setup timeline clicking
                 this.setupTimelineClick();
@@ -519,6 +548,13 @@
                 blockEl.appendChild(label);
                 blockEl.appendChild(time);
                 
+                // Create external label for small blocks
+                const externalLabel = document.createElement('div');
+                externalLabel.className = 'block-external-label';
+                externalLabel.textContent = block.name;
+                externalLabel.setAttribute('data-for-block', block.id);
+                blockEl.appendChild(externalLabel);
+                
                 // Resize handle
                 const resizeHandle = document.createElement('div');
                 resizeHandle.className = 'resize-handle';
@@ -560,6 +596,38 @@
                 });
                 
                 this.blocksContainer.appendChild(blockEl);
+                
+                // Check if the label fits inside the block
+                setTimeout(() => this.checkLabelVisibility(block.id), 0);
+            }
+            
+            /**
+             * Check if a block's label is visible within the block and switch to external label if needed
+             * @param {string} blockId - ID of the block to check
+             */
+            checkLabelVisibility(blockId) {
+                const blockEl = document.getElementById(blockId);
+                if (!blockEl) return;
+                
+                const labelEl = blockEl.querySelector('.block-label');
+                const externalLabelEl = blockEl.querySelector('.block-external-label');
+                
+                if (!labelEl || !externalLabelEl) return;
+                
+                // Calculate minimum width needed for the label plus padding
+                const minimumWidthForLabel = Math.min(labelEl.scrollWidth + 20, 120); // Cap at 120px to avoid too large threshold
+                
+                // Get current block width
+                const blockWidth = blockEl.offsetWidth;
+                
+                // Show external label if block is too narrow, otherwise hide it
+                if (blockWidth < minimumWidthForLabel) {
+                    labelEl.style.opacity = '0';
+                    externalLabelEl.style.display = 'block';
+                } else {
+                    labelEl.style.opacity = '1';
+                    externalLabelEl.style.display = 'none';
+                }
             }
             
             /**
@@ -656,6 +724,9 @@
                     
                     // Update visual width
                     blockEl.style.width = `${newWidth}px`;
+                    
+                    // Check if label should be shown inside or outside
+                    this.checkLabelVisibility(this.activeBlock.id);
                 }
             }
             
@@ -717,6 +788,15 @@
                 // Update label display
                 const labelEl = blockEl.querySelector('.block-label');
                 labelEl.textContent = block.name;
+                
+                // Update external label
+                const externalLabelEl = blockEl.querySelector('.block-external-label');
+                if (externalLabelEl) {
+                    externalLabelEl.textContent = block.name;
+                }
+                
+                // Check if label should be shown inside or outside
+                this.checkLabelVisibility(block.id);
             }
             
             /**
