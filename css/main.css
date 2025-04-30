@@ -19,7 +19,7 @@
 @import 'components/toast.css';
 @import 'components/context-menu.css';
 @import 'components/preset-selector.css';
-/* @import 'components/shuffle-modal.css'; Added shuffle modal styles */
+@import 'components/shuffle-modal.css'; Added shuffle modal styles
 
 /**
  * Custom additions can be added here
