@@ -2,7 +2,7 @@
  * Module for handling modal dialogs with accessibility support
  */
 import { showToast } from './Toast.js';
-import { hexToHsl } from '../utils/ColorUtils.js';
+import { hexToHsl, hslToHex } from '../utils/ColorUtils.js';
 
 /**
  * Opens a block creation/editing modal
@@ -14,11 +14,18 @@ export function openBlockModal(startHour, timeline, blockId = null) {
   // Remove any existing modals first
   const existingModals = document.querySelectorAll('.modal');
   existingModals.forEach(modal => {
-    document.body.removeChild(modal);
+    if (modal.parentNode) {
+      modal.parentNode.removeChild(modal);
+    }
   });
   
   // Get template content
   const template = document.getElementById('block-modal-template');
+  if (!template) {
+    console.error('Block modal template not found');
+    return;
+  }
+  
   const modal = template.content.cloneNode(true).querySelector('.modal');
   
   // Set title based on operation
@@ -47,7 +54,7 @@ export function openBlockModal(startHour, timeline, blockId = null) {
       
       // Convert HSL to hex for the color input
       try {
-        const hexColor = timeline.hslToHex(block.color);
+        const hexColor = hslToHex(block.color);
         colorInput.value = hexColor;
         colorPreview.style.backgroundColor = hexColor;
       } catch (error) {
