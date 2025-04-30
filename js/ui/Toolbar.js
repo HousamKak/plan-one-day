@@ -85,10 +85,15 @@ function updateToggleState(button, state) {
   if (button.id === 'time-format-toggle') {
     // Time format toggle has special styling needs
     const formatText = state ? '12h' : '24h';
+    const formatTextElement = button.querySelector('.format-text');
     const tooltip = button.querySelector('.tooltip');
-    
+
+    if (formatTextElement) {
+      formatTextElement.textContent = formatText;
+    }
+
     if (tooltip) {
-      tooltip.textContent = `${formatText} Format`;
+      tooltip.textContent = `Switch to ${state ? '24h' : '12h'} Format`;
     }
   }
 }
