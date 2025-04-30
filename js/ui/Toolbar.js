@@ -1,8 +1,6 @@
-/**
- * Module for handling toolbar buttons and actions
- */
 import { showToast } from './Toast.js';
 import { initPresetManager } from './PresetManager.js';
+import { ShuffleUIManager } from '../shuffle/ShuffleUIManager.js';
 
 /**
  * Initializes toolbar elements and their event handlers
@@ -13,14 +11,19 @@ export function initToolbar(timeline, storage) {
   // Get toolbar elements
   const clearButton = document.querySelector('.btn-clear');
   const shuffleButton = document.querySelector('.btn-shuffle');
+  const shuffleSettingsButton = document.querySelector('.btn-shuffle-settings');
   const wrapToggle = document.getElementById('wrap-toggle');
   const overlapToggle = document.getElementById('overlap-toggle');
   const timeFormatToggle = document.getElementById('time-format-toggle');
   
-  if (!clearButton || !shuffleButton || !wrapToggle || !overlapToggle || !timeFormatToggle) {
+  if (!clearButton || !shuffleButton || !shuffleSettingsButton || 
+      !wrapToggle || !overlapToggle || !timeFormatToggle) {
     console.error('Toolbar elements not found');
     return;
   }
+  
+  // Create shuffle UI manager
+  const shuffleUIManager = new ShuffleUIManager(timeline);
   
   // Clear button
   clearButton.addEventListener('click', () => {
@@ -29,9 +32,30 @@ export function initToolbar(timeline, storage) {
     }
   });
   
-  // Shuffle button
-  shuffleButton.addEventListener('click', () => {
+  // Shuffle button (quick shuffle)
+  let shuffleTimer;
+  shuffleButton.addEventListener('mousedown', () => {
+    // Immediate shuffle on click
     timeline.shuffleBlocks();
+    
+    // Long press to open strategy selector
+    shuffleTimer = setTimeout(() => {
+      shuffleUIManager.openStrategyModal();
+    }, 500); // 500ms long press
+  });
+  
+  // Cancel shuffle timer on mouse up/leave
+  shuffleButton.addEventListener('mouseup', () => {
+    clearTimeout(shuffleTimer);
+  });
+  
+  shuffleButton.addEventListener('mouseleave', () => {
+    clearTimeout(shuffleTimer);
+  });
+  
+  // Shuffle settings button
+  shuffleSettingsButton.addEventListener('click', () => {
+    shuffleUIManager.openStrategyModal();
   });
   
   // Wrap toggle
