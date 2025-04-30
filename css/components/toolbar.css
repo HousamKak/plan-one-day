@@ -56,8 +56,8 @@
   /* Active/pressed toggle button style */
   .toolbar button[aria-pressed="true"],
   .toolbar button.active {
-    color: var(--neumorph-button-active-text);
-    background-color: var(--neumorph-button-active-bg);
+    color: var(--accent-color);
+    background-color: var(--neumorph-bg);
     box-shadow: 
       inset var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
       calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-dark),
@@ -65,10 +65,25 @@
       calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-light);
   }
   
+  /* Format text for time toggle button */
+  .format-text {
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-semibold);
+    margin-left: 2px;
+  }
+  
   /* Time format toggle specific styling */
+  .time-format-btn {
+    display: flex !important;
+    gap: 4px;
+    width: auto !important;
+    padding-right: 12px !important;
+  }
+  
+  /* Time format toggle specific styling when active */
   #time-format-toggle[aria-pressed="true"] {
-    color: var(--neumorph-button-active-text);
-    background-color: var(--neumorph-button-active-bg);
+    color: var(--accent-color);
+    background-color: var(--neumorph-bg);
     box-shadow: 
       inset var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
       calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-dark),
