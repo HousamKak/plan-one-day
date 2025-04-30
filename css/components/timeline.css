@@ -42,38 +42,39 @@
   
   /* Hour markers container */
   .timeline-hours {
-    position: relative;
-    height: 25px;
-    margin-top: 10px;
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-  }
-  
-  /* Individual hour marker */
-  .hour-marker {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: var(--light-text);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    transform: translateX(-50%);
-  }
-  
-  .hour-marker::before {
-    content: '';
-    height: 8px;
-    width: 2px;
-    background: linear-gradient(
-      to bottom,
-      var(--neumorph-shadow-dark),
-      var(--neumorph-light)
-    );
-    border-radius: 1px;
-    margin-bottom: 5px;
-  }
+  position: relative;
+  height: 35px; /* Increased from 25px */
+  margin-top: 15px; /* Increased from 10px */
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Individual hour marker */
+.hour-marker {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--light-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transform: translateX(-50%);
+  margin-top: 30px; /* Added to move numbers down */
+}
+
+.hour-marker::before {
+  content: '';
+  height: 8px;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    var(--neumorph-shadow-dark),
+    var(--neumorph-light)
+  );
+  border-radius: 1px;
+  margin-bottom: 8px; /* Increased from 5px */
+}
   
   /* Timeline ticks (vertical hour marks) */
   .timeline-ticks {
