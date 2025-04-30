@@ -1,6 +1,8 @@
 /**
  * Represents a timeline block with drag and resize capabilities
  */
+import { formatTime } from '../utils/TimeUtils.js';
+
 export class Block {
   /**
    * Creates a new Block instance
@@ -66,7 +68,6 @@ export class Block {
     // Resize state for right handle
     this.isResizing = false;
     this.resizeStartX = 0;
-    this.originalWidth = 0;
     this.originalDuration = 0;
     
     // Resize state for left handle
@@ -182,22 +183,8 @@ export class Block {
   updateLabel() {
     const titleElement = this.element.querySelector('.block-title');
     
-    // Convert hours to HH:MM format
-    const formatTime = (hours) => {
-      const h = Math.floor(hours);
-      const m = Math.round((hours - h) * 60);
-
-      if (this.use24HourFormat) {
-        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-      } else {
-        const period = h >= 12 ? 'PM' : 'AM';
-        const hour12 = h % 12 || 12; // Convert 0 to 12 for 12 AM
-        return `${hour12}:${m.toString().padStart(2, '0')} <span style='font-size: smaller;'>${period}</span>`;
-      }
-    };
-    
-    const startTime = formatTime(this.start);
-    const endTime = formatTime((this.start + this.duration) % 24);
+    const startTime = formatTime(this.start, this.use24HourFormat);
+    const endTime = formatTime((this.start + this.duration) % 24, this.use24HourFormat);
     
     // Make sure to create proper block elements
     titleElement.innerHTML = '';
@@ -670,61 +657,17 @@ export class Block {
   handleContextMenu(event) {
     event.preventDefault();
     
-    // Create context menu from template
-    const template = document.getElementById('block-context-menu-template');
-    const contextMenu = template.content.cloneNode(true).querySelector('.context-menu');
-    
-    // Position the menu
-    contextMenu.style.left = `${event.clientX}px`;
-    contextMenu.style.top = `${event.clientY}px`;
-    
-    // Add event listeners to buttons
-    contextMenu.querySelector('.edit-block').addEventListener('click', () => {
-      this.timeline.editBlock(this.id);
-      document.body.removeChild(contextMenu);
+    // Dispatch event for the context menu handler
+    const contextMenuEvent = new CustomEvent('block:context-menu', {
+      detail: {
+        blockId: this.id,
+        x: event.clientX,
+        y: event.clientY
+      },
+      bubbles: true
     });
     
-    contextMenu.querySelector('.duplicate-block').addEventListener('click', () => {
-      this.timeline.duplicateBlock(this.id);
-      document.body.removeChild(contextMenu);
-    });
-    
-    contextMenu.querySelector('.delete-block').addEventListener('click', () => {
-      this.timeline.removeBlock(this.id);
-      document.body.removeChild(contextMenu);
-    });
-    
-    // Add click outside to close
-    const closeMenu = (e) => {
-      if (!contextMenu.contains(e.target)) {
-        document.body.removeChild(contextMenu);
-        document.removeEventListener('click', closeMenu);
-      }
-    };
-    
-    // Add to DOM
-    document.body.appendChild(contextMenu);
-    
-    // Add event listener after a short delay to prevent immediate closing
-    setTimeout(() => {
-      document.addEventListener('click', closeMenu);
-    }, 10);
-  }
-  
-  /**
-   * Handles click event on block (shows same context menu)
-   * @param {MouseEvent} event 
-   */
-  handleClick(event) {
-    // Simulate a context menu click at the center of the block
-    const rect = this.element.getBoundingClientRect();
-    const fakeEvent = {
-      preventDefault: () => {},
-      clientX: rect.left + rect.width / 2,
-      clientY: rect.top - 10
-    };
-    
-    this.handleContextMenu(fakeEvent);
+    this.element.dispatchEvent(contextMenuEvent);
   }
   
   /**

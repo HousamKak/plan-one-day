@@ -1,0 +1,146 @@
+/**
+ * Preset selector styles
+ */
+
+/* Custom preset container (dropdown) */
+.custom-preset-container {
+    max-height: calc(3 * 40px) !important; /* Show exactly 3 items before scrolling */
+    overflow-y: auto;
+    border-radius: var(--neumorph-border-radius);
+    box-shadow: 
+      var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
+      calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-shadow-dark),
+      calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
+      calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-light);
+    background-color: var(--neumorph-bg);
+    scrollbar-width: thin;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: var(--z-index-dropdown);
+    margin-top: 4px;
+  }
+  
+  /* Preset item in dropdown */
+  .preset-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    height: 40px;
+    transition: background-color var(--transition-speed) var(--transition-timing);
+    background-color: var(--neumorph-bg);
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+  }
+  
+  .preset-item:hover,
+  .preset-item:focus {
+    background-color: var(--neumorph-light);
+  }
+  
+  .preset-item:active {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Delete button in preset item */
+  .preset-delete {
+    background: none;
+    border: none;
+    color: var(--error-color);
+    cursor: pointer;
+    margin-left: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    opacity: 0.8;
+    transition: opacity var(--transition-speed) var(--transition-timing);
+  }
+  
+  .preset-delete:hover,
+  .preset-delete:focus {
+    opacity: 1;
+  }
+  
+  .preset-delete svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  
+  /* Empty state (no presets) */
+  .preset-empty {
+    padding: 0.75rem;
+    color: var(--light-text);
+    text-align: center;
+    font-style: italic;
+    font-size: var(--font-size-sm);
+  }
+  
+  /* Preset container scrollbar styling */
+  .custom-preset-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-preset-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-preset-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+  
+  .custom-preset-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Preset forms and dialogs */
+  .preset-form {
+    margin-top: var(--spacing-md);
+  }
+  
+  .preset-form input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .preset-form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+  }
+  
+  /* Preset categories (optional) */
+  .preset-category {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.7rem;
+    color: var(--light-text);
+    background-color: rgba(0, 0, 0, 0.05);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: var(--font-weight-semibold);
+  }
+  
+  /* Focus indicator for keyboard navigation */
+  .preset-item:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: -2px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .preset-item {
+      height: 44px; /* Slightly taller for touch devices */
+    }
+    
+    .custom-preset-container {
+      max-height: calc(3 * 44px) !important;
+    }
+  }

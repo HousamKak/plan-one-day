@@ -1,0 +1,220 @@
+/**
+ * Base styles and resets
+ */
+
+/* CSS Reset and base styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  html, body {
+    height: 100%;
+    width: 100%;
+  }
+  
+  body {
+    font-family: var(--font-family);
+    background-color: var(--neumorph-bg);
+    color: var(--text-color);
+    line-height: var(--line-height);
+    font-size: var(--font-size-md);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-md);
+  }
+  
+  /* Focus styles for accessibility */
+  :focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+  
+  /* Focus styles for mouse users only */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+  
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.2;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-color);
+  }
+  
+  h1 {
+    font-size: var(--font-size-xl);
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  h2 {
+    font-size: var(--font-size-lg);
+  }
+  
+  p {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  /* Button resets and basic styling */
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    padding: 0;
+  }
+  
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  
+  /* Form elements */
+  input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-sm);
+    background-color: var(--modal-bg);
+    color: var(--text-color);
+    transition: border-color var(--transition-speed) var(--transition-timing);
+  }
+  
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent-color);
+    outline: none;
+  }
+  
+  input[type="color"] {
+    padding: 2px;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+  }
+  
+  /* Standard form layout */
+  .form-group {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-weight: var(--font-weight-medium);
+  }
+  
+  /* Basic button styles */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-speed) var(--transition-timing);
+    text-align: center;
+  }
+  
+  .btn-primary {
+    background-color: var(--accent-color);
+    color: white;
+  }
+  
+  .btn-primary:hover, .btn-primary:focus {
+    background-color: var(--accent-color);
+    filter: brightness(1.1);
+  }
+  
+  .btn-secondary {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--light-text);
+  }
+  
+  .btn-secondary:hover, .btn-secondary:focus {
+    background-color: var(--bg-color);
+  }
+  
+  /* Visually hidden elements (for screen readers) */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+  
+  /* Utility classes */
+  .text-center {
+    text-align: center;
+  }
+  
+  .text-left {
+    text-align: left;
+  }
+  
+  .text-right {
+    text-align: right;
+  }
+  
+  .hide {
+    display: none !important;
+  }
+  
+  .flex {
+    display: flex;
+  }
+  
+  .flex-column {
+    flex-direction: column;
+  }
+  
+  .justify-center {
+    justify-content: center;
+  }
+  
+  .justify-between {
+    justify-content: space-between;
+  }
+  
+  .items-center {
+    align-items: center;
+  }
+  
+  .w-100 {
+    width: 100%;
+  }
+  
+  .mt-1 {
+    margin-top: var(--spacing-sm);
+  }
+  
+  .mt-2 {
+    margin-top: var(--spacing-md);
+  }
+  
+  .mb-1 {
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .mb-2 {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  /* Icon styles */
+  .icon {
+    display: inline-flex;
+    width: 1.25rem;
+    height: 1.25rem;
+  }

@@ -1,0 +1,190 @@
+/**
+ * Timeline specific styles
+ */
+
+/* Timeline container */
+.timeline-container {
+    position: relative;
+    margin-bottom: var(--spacing-lg);
+    margin-top: 50px;
+    width: 100%;
+  }
+  
+  /* Timeline line (horizontal axis) */
+  .timeline-line {
+    position: absolute;
+    top: 65px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(
+      to right,
+      var(--neumorph-shadow-dark),
+      var(--neumorph-light),
+      var(--neumorph-shadow-dark)
+    );
+    border-radius: 2px;
+    box-shadow: 
+      0 1px 2px var(--neumorph-light),
+      0 -1px 2px var(--neumorph-shadow-dark);
+    z-index: var(--z-index-base);
+  }
+  
+  /* Timeline grid (where blocks are placed) */
+  .timeline-grid {
+    position: relative;
+    height: 150px;
+    width: 100%;
+    z-index: var(--z-index-blocks);
+    padding-top: 40px;
+    margin-top: 10px;
+  }
+  
+  /* Hour markers container */
+  .timeline-hours {
+    position: relative;
+    height: 25px;
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  /* Individual hour marker */
+  .hour-marker {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--light-text);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    transform: translateX(-50%);
+  }
+  
+  .hour-marker::before {
+    content: '';
+    height: 8px;
+    width: 2px;
+    background: linear-gradient(
+      to bottom,
+      var(--neumorph-shadow-dark),
+      var(--neumorph-light)
+    );
+    border-radius: 1px;
+    margin-bottom: 5px;
+  }
+  
+  /* Timeline ticks (vertical hour marks) */
+  .timeline-ticks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    pointer-events: none;
+    z-index: var(--z-index-base);
+  }
+  
+  /* Hour tick mark */
+  .hour-tick {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: rgba(200, 200, 200, 0.3);
+    pointer-events: none;
+  }
+  
+  /* Half-hour tick mark */
+  .half-hour-tick {
+    position: absolute;
+    top: 25%;
+    bottom: 25%;
+    width: 1px;
+    background-color: rgba(200, 200, 200, 0.2);
+    pointer-events: none;
+  }
+  
+  /* Current time indicator */
+  .current-time-indicator {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--accent-color);
+    z-index: var(--z-index-blocks);
+    pointer-events: none;
+  }
+  
+  .current-time-indicator::after {
+    content: '';
+    position: absolute;
+    top: 65px;
+    left: -4px;
+    width: 10px;
+    height: 10px;
+    background-color: var(--accent-color);
+    border-radius: 50%;
+    transform: translateY(-50%);
+  }
+  
+  .current-time-label {
+    position: absolute;
+    top: 30px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    background-color: var(--accent-color);
+    color: white;
+    border-radius: var(--border-radius-sm);
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  
+  /* Confirmation dialog */
+  .confirm-dialog-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: var(--z-index-modal);
+  }
+  
+  .confirm-dialog {
+    background-color: var(--modal-bg);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 90%;
+    max-width: 400px;
+  }
+  
+  .confirm-dialog p {
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .confirm-dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .timeline-container {
+      margin-top: 30px;
+    }
+    
+    .hour-marker {
+      font-size: 0.75rem;
+    }
+    
+    .hour-marker:nth-child(odd) {
+      display: none;
+    }
+  }

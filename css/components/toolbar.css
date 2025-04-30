@@ -1,0 +1,216 @@
+/**
+ * Toolbar styles
+ */
+
+/* Main toolbar container */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+  }
+  
+  /* Basic toolbar button */
+  .toolbar button {
+    background-color: var(--neumorph-button-bg);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neumorph-button-text);
+    transition: all var(--transition-speed) var(--transition-timing);
+    padding: var(--spacing-sm);
+    border-radius: var(--neumorph-border-radius);
+    box-shadow: 
+      var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
+      calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-shadow-dark),
+      calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
+      calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-light);
+    position: relative;
+    height: 40px;
+    width: 40px;
+    margin: 0 4px;
+  }
+  
+  .toolbar button:hover {
+    color: var(--accent-color);
+  }
+  
+  .toolbar button:active {
+    box-shadow: 
+      inset var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
+      calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-dark),
+      inset calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
+      calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-light);
+  }
+  
+  .toolbar button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  
+  /* Active/pressed toggle button style */
+  .toolbar button[aria-pressed="true"],
+  .toolbar button.active {
+    color: var(--neumorph-button-active-text);
+    background-color: var(--neumorph-button-active-bg);
+    box-shadow: 
+      inset var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
+      calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-dark),
+      inset calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
+      calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-light);
+  }
+  
+  /* Time format toggle specific styling */
+  #time-format-toggle[aria-pressed="true"] {
+    color: var(--neumorph-button-active-text);
+    background-color: var(--neumorph-button-active-bg);
+    box-shadow: 
+      inset var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
+      calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-dark),
+      inset calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
+      calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-light);
+  }
+  
+  /* Tooltip for toolbar buttons */
+  .tooltip {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--text-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: 
+      opacity var(--transition-speed) var(--transition-timing), 
+      visibility var(--transition-speed) var(--transition-timing);
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: var(--z-index-tooltip);
+    margin-top: 5px;
+  }
+  
+  .toolbar button:hover .tooltip {
+    opacity: 0.9;
+    visibility: visible;
+  }
+  
+  /* Preset controls */
+  .preset-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-left: auto;
+  }
+  
+  /* Preset selector container */
+  .preset-selector {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Custom preset button that replaces select */
+  .preset-button {
+    width: 150px !important;
+    background-color: var(--neumorph-bg) !important;
+    border: none !important;
+    border-radius: var(--neumorph-border-radius) !important;
+    box-shadow: 
+      var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
+      calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-shadow-dark),
+      calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
+      calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-light) !important;
+    text-align: left;
+    padding: 0.5rem 1rem !important;
+    transition: all var(--transition-speed) var(--transition-timing);
+    position: relative;
+    height: auto !important;
+  }
+  
+  .preset-button:active {
+    box-shadow: 
+      inset var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
+      calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-dark),
+      inset calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
+      calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-light) !important;
+  }
+  
+  /* Native select (hidden by default) */
+  .preset-selector select {
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background-color: white;
+    font-family: inherit;
+    font-size: 0.875rem;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: border-color var(--transition-speed) var(--transition-timing);
+  }
+  
+  .preset-selector select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+  }
+  
+  /* Toolbar sections grouping */
+  .toolbar-section {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+  
+  .toolbar-section:not(:last-child) {
+    margin-right: var(--spacing-md);
+  }
+  
+  /* Separator for toolbar sections */
+  .toolbar-separator {
+    width: 1px;
+    height: 24px;
+    background-color: var(--border-color);
+    margin: 0 var(--spacing-sm);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .toolbar {
+      gap: 0.5rem;
+      justify-content: space-between;
+      padding: var(--spacing-sm) 0;
+    }
+    
+    .preset-controls {
+      margin-left: 0;
+      width: 100%;
+      margin-top: 0.5rem;
+      justify-content: space-between;
+    }
+    
+    .toolbar button {
+      margin: 0 2px;
+      height: 36px;
+      width: 36px;
+    }
+    
+    .preset-button {
+      width: 120px !important;
+    }
+    
+    .toolbar-section {
+      flex-wrap: wrap;
+    }
+    
+    .toolbar-separator {
+      display: none;
+    }
+  }

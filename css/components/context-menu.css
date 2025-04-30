@@ -1,0 +1,136 @@
+/**
+ * Context menu styles
+ */
+
+/* Context menu container */
+.context-menu {
+    position: absolute;
+    background-color: var(--modal-bg);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: var(--z-index-context-menu);
+    overflow: hidden;
+    min-width: 150px;
+    animation: fadeIn var(--transition-speed-fast) var(--transition-timing);
+  }
+  
+  /* Context menu buttons/options */
+  .context-menu button {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: var(--font-size-sm);
+    color: var(--text-color);
+    transition: 
+      background-color var(--transition-speed) var(--transition-timing),
+      color var(--transition-speed) var(--transition-timing);
+  }
+  
+  .context-menu button:hover,
+  .context-menu button:focus {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Context menu item with icon */
+  .context-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .context-menu-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+  
+  /* Delete button (special styling) */
+  .context-menu button.delete-block {
+    color: var(--error-color);
+  }
+  
+  .context-menu button.delete-block:hover,
+  .context-menu button.delete-block:focus {
+    background-color: rgba(220, 53, 69, 0.1);
+  }
+  
+  /* Context menu divider */
+  .context-menu-divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 4px 0;
+  }
+  
+  /* Context menu header (optional) */
+  .context-menu-header {
+    padding: 0.5rem 1rem;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--light-text);
+    background-color: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  /* Context menu animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Context sub-menu (for nested menus) */
+  .context-submenu {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    display: none;
+    background-color: var(--modal-bg);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    min-width: 150px;
+  }
+  
+  /* Show submenu on hover */
+  .context-menu-item.has-submenu:hover .context-submenu,
+  .context-menu-item.has-submenu:focus-within .context-submenu {
+    display: block;
+  }
+  
+  /* Submenu indicator */
+  .context-menu-item.has-submenu::after {
+    content: '▶';
+    position: absolute;
+    right: 10px;
+    font-size: 0.7rem;
+    opacity: 0.7;
+  }
+  
+  /* Disabled menu items */
+  .context-menu button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: transparent !important;
+  }
+  
+  /* Touch device optimizations */
+  @media (pointer: coarse) {
+    .context-menu button {
+      padding: 0.75rem 1rem;
+    }
+    
+    .context-menu-item.has-submenu::after {
+      font-size: 0.8rem;
+    }
+  }

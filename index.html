@@ -4,17 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>24-Hour Visual Day Planner</title>
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="description" content="Interactive visual day planner for scheduling your daily activities">
+    <meta name="color-scheme" content="light dark">
+    
+    <!-- Preload critical CSS -->
+    <link rel="preload" href="css/main.css" as="style">
+    <!-- Preload background images -->
+    <link rel="preload" href="assets/image.png" as="image">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    
+    <!-- Google font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Background images and overlay will be added dynamically -->
+    
     <main>
-        <h1>24-Hour Visual Day Planner</h1>
+        <h1 class="app-title">24-Hour Visual Day Planner</h1>
         <div class="toolbar">
             <button aria-label="Clear timeline" title="Clear timeline" class="btn-clear">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
+                <span class="tooltip">Clear timeline</span>
             </button>
             <button aria-label="Shuffle blocks" title="Shuffle blocks" class="btn-shuffle">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -24,6 +41,7 @@
                     <path d="M15 15L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M4 4L9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
+                <span class="tooltip">Shuffle blocks</span>
             </button>
             <button aria-label="Toggle wrap-around" title="Toggle wrap-around" class="btn-toggle" id="wrap-toggle" aria-pressed="false">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -50,19 +68,6 @@
                 <span class="tooltip">12h/24h Format</span>
             </button>
 
-            <button 
-              aria-label="Toggle night mode" 
-              title="Night mode" 
-              class="btn-toggle btn-night" 
-              id="night-mode-toggle" 
-              aria-pressed="false"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M21 12.79A9 9 0 0111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="2"/>
-              </svg>
-              <span class="tooltip">Night mode</span>
-            </button>
-
             <div class="preset-controls">
                 <button aria-label="Save preset" title="Save preset" class="btn-save">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -70,6 +75,7 @@
                         <path d="M17 21V13H7V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M7 3V8H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
+                    <span class="tooltip">Save preset</span>
                 </button>
                 <div id="preset-container" class="preset-selector">
                     <select id="preset-select" aria-label="Load preset">
@@ -89,6 +95,7 @@
         </div>
     </main>
 
+    <!-- Templates Section -->
     <!-- Create Block Modal Template -->
     <template id="block-modal-template">
         <div class="modal">
@@ -143,6 +150,7 @@
         </svg>
     </template>
 
-    <script type="module" src="js/ui.js"></script>
+    <!-- Main application script -->
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
