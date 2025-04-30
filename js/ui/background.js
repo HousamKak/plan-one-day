@@ -7,28 +7,21 @@
  * @param {Array} images - Array of image filenames
  */
 export function initBackground(images = ['image.png', 'image2.webp', 'image3.jpg', 'image4.jpg', 'image5.webp']) {
-    // Find the timeline container
-    const timelineContainer = document.querySelector('.timeline-container');
-    if (!timelineContainer) {
-      console.error('Timeline container not found');
-      return;
-    }
-    
     // Create background container
     let bgContainer = document.createElement('div');
     bgContainer.className = 'background-container';
-    bgContainer.style.position = 'absolute';
+    
+    // Position the background container to cover the entire viewport
+    bgContainer.style.position = 'fixed';
     bgContainer.style.top = '0';
     bgContainer.style.left = '0';
-    bgContainer.style.width = '100%';
-    bgContainer.style.height = '100%';
-    bgContainer.style.zIndex = '-1'; // Place behind timeline content
+    bgContainer.style.width = '100vw';
+    bgContainer.style.height = '100vh';
+    bgContainer.style.zIndex = '-1'; // Place behind all content
     bgContainer.style.overflow = 'hidden';
-    bgContainer.style.borderRadius = 'inherit'; // Match parent border radius
     
-    // Add background container as first child of timeline container
-    timelineContainer.style.position = 'relative'; // Ensure proper positioning
-    timelineContainer.insertBefore(bgContainer, timelineContainer.firstChild);
+    // Add background container to the body, outside of the main planner content
+    document.body.insertBefore(bgContainer, document.body.firstChild);
     
     // Add background overlay
     const overlay = document.createElement('div');
@@ -51,8 +44,9 @@ export function initBackground(images = ['image.png', 'image2.webp', 'image3.jpg
       imgElement.style.left = '0';
       imgElement.style.width = '100%';
       imgElement.style.height = '100%';
-      imgElement.style.backgroundSize = 'cover';
-      imgElement.style.backgroundPosition = 'center';
+      imgElement.style.backgroundSize = 'auto';
+      imgElement.style.backgroundPosition = '0 0';
+      imgElement.style.backgroundRepeat = 'repeat';
       imgElement.style.backgroundImage = `url('assets/${image}')`;
       imgElement.style.opacity = index === 0 ? '1' : '0'; // First image visible
       imgElement.style.transition = 'opacity 1.5s ease-in-out';

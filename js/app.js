@@ -7,7 +7,7 @@ import { Storage } from './core/Storage.js';
 import { initToolbar } from './ui/Toolbar.js';
 import { initTimelineUI } from './ui/TimelineUI.js';
 import { setupModalKeyboardHandling } from './ui/Modal.js';
-import { initBackground } from './ui/Background.js';
+import { initBackground } from './ui/background.js';
 
 /**
  * Initialize the application
