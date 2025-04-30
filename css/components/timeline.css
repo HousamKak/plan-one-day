@@ -40,7 +40,9 @@
     margin-top: 10px;
   }
   
-  /* Hour markers container */
+  /* Updated styles for timeline */
+  
+  /* Updated hour markers container */
   .timeline-hours {
   position: relative;
   height: 35px; /* Increased from 25px */
@@ -50,7 +52,7 @@
   width: 100%;
 }
 
-/* Individual hour marker */
+/* Updated individual hour marker */
 .hour-marker {
   position: absolute;
   display: flex;
@@ -61,6 +63,13 @@
   font-weight: var(--font-weight-medium);
   transform: translateX(-50%);
   margin-top: 30px; /* Added to move numbers down */
+  padding: 6px 8px; /* Add padding around the numbers */
+  border-radius: var(--border-radius-sm);
+  transition: color var(--transition-speed) var(--transition-timing);
+}
+
+.hour-marker:hover {
+  color: var(--text-color);
 }
 
 .hour-marker::before {
@@ -76,34 +85,39 @@
   margin-bottom: 8px; /* Increased from 5px */
 }
   
-  /* Timeline ticks (vertical hour marks) */
-  .timeline-ticks {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
-    pointer-events: none;
-    z-index: var(--z-index-base);
-  }
-  
-  /* Hour tick mark */
+  /* Updated hour tick mark */
   .hour-tick {
     position: absolute;
-    top: 0;
-    bottom: 0;
+    height: 130px; /* Fixed height */
+    top: 0; /* Align from the top */
     width: 1px;
-    background-color: rgba(200, 200, 200, 0.3);
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(200, 200, 200, 0.2) 10%,
+      rgba(200, 200, 200, 0.4) 48%,
+      rgba(200, 200, 200, 0.6) 50%,
+      rgba(200, 200, 200, 0.4) 52%,
+      rgba(200, 200, 200, 0.2) 90%,
+      transparent
+    );
     pointer-events: none;
   }
   
-  /* Half-hour tick mark */
+  /* Updated half-hour tick mark */
   .half-hour-tick {
     position: absolute;
-    top: 25%;
-    bottom: 25%;
+    height: 80px; /* Shorter than full hour ticks */
+    top: 25px; /* Position to center on timeline */
     width: 1px;
-    background-color: rgba(200, 200, 200, 0.2);
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(200, 200, 200, 0.1) 20%,
+      rgba(200, 200, 200, 0.3) 50%,
+      rgba(200, 200, 200, 0.1) 80%,
+      transparent
+    );
     pointer-events: none;
   }
   
