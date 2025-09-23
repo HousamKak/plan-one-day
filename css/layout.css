@@ -1,0 +1,205 @@
+/**
+ * Main layout styles
+ */
+
+/* Main container */
+main {
+    width: 100%;
+    max-width: 1400px;
+    margin: auto;
+    padding: var(--spacing-xl);
+    background-color: var(--neumorph-bg);
+    border-radius: var(--border-radius-xl);
+    box-shadow: 
+      var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
+      calc(var(--neumorph-shadow-distance) * 3) var(--neumorph-shadow-dark),
+      calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
+      calc(var(--neumorph-shadow-distance) * 3) var(--neumorph-light);
+  }
+  
+  /* Title and header */
+  .app-title {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+    color: var(--text-color);
+    font-weight: var(--font-weight-semibold);
+  }
+  
+  /* Sections and dividers */
+  .section {
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .section-title {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-md);
+    font-weight: var(--font-weight-semibold);
+  }
+  
+  .divider {
+    height: 1px;
+    width: 100%;
+    background-color: var(--border-color);
+    margin: var(--spacing-lg) 0;
+  }
+  
+  /* Main app layout grid */
+  .app-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-gap: var(--spacing-xl);
+  }
+  
+  /* Two column layout */
+  .two-column {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-gap: var(--spacing-lg);
+  }
+  
+  @media (min-width: 768px) {
+    .two-column {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  /* Three column layout */
+  .three-column {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-gap: var(--spacing-lg);
+  }
+  
+  @media (min-width: 768px) {
+    .three-column {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .three-column {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  }
+  
+  /* Card layout */
+  .card {
+    background-color: var(--neumorph-bg);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: 
+      var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
+      calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-shadow-dark),
+      calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
+      calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-light);
+  }
+  
+  .card-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .card-content {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .card-footer {
+    margin-top: var(--spacing-md);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+  }
+  
+  /* Container with inset shadow */
+  .inset-container {
+    background-color: var(--neumorph-bg);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-md);
+    box-shadow: inset var(--neumorph-shadow-distance) var(--neumorph-shadow-distance) 
+      calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-dark),
+      inset calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance)) 
+      calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-light);
+  }
+  
+  /* Flexbox utility classes */
+  .flex-row {
+    display: flex;
+    flex-direction: row;
+  }
+  
+  .flex-column {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .flex-wrap {
+    flex-wrap: wrap;
+  }
+  
+  .gap-sm {
+    gap: var(--spacing-sm);
+  }
+  
+  .gap-md {
+    gap: var(--spacing-md);
+  }
+  
+  .gap-lg {
+    gap: var(--spacing-lg);
+  }
+  
+  .align-center {
+    align-items: center;
+  }
+  
+  .align-start {
+    align-items: flex-start;
+  }
+  
+  .align-end {
+    align-items: flex-end;
+  }
+  
+  .justify-start {
+    justify-content: flex-start;
+  }
+  
+  .justify-center {
+    justify-content: center;
+  }
+  
+  .justify-end {
+    justify-content: flex-end;
+  }
+  
+  .justify-between {
+    justify-content: space-between;
+  }
+  
+  .justify-around {
+    justify-content: space-around;
+  }
+  
+  /* Responsive spacing adjustments */
+  @media (max-width: 768px) {
+    main {
+      padding: var(--spacing-md);
+    }
+    
+    .app-title {
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .section {
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .card {
+      padding: var(--spacing-md);
+    }
+    
+    .app-grid, .two-column, .three-column {
+      grid-gap: var(--spacing-md);
+    }
+  }

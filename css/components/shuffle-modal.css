@@ -1,0 +1,120 @@
+/**
+ * Styles for shuffle strategy modal
+ */
+
+/* Strategy options container */
+.strategy-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 20px 0;
+  }
+  
+  /* Strategy button */
+  .strategy-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 15px;
+    background-color: var(--neumorph-bg);
+    border: none;
+    border-radius: var(--neumorph-border-radius);
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    text-align: left;
+    box-shadow: 
+      var(--neumorph-shadow-distance) var(--neumorph-shadow-distance)
+      calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-shadow-dark),
+      calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance))
+      calc(var(--neumorph-shadow-distance) * 2) var(--neumorph-light);
+  }
+  
+  .strategy-btn:hover {
+    background-color: var(--neumorph-light);
+  }
+  
+  .strategy-btn:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+  
+  .strategy-btn:active {
+    box-shadow: 
+      inset var(--neumorph-shadow-distance) var(--neumorph-shadow-distance)
+      calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-dark),
+      inset calc(-1 * var(--neumorph-shadow-distance)) calc(-1 * var(--neumorph-shadow-distance))
+      calc(var(--neumorph-shadow-distance) * 1.5) var(--neumorph-inset-shadow-light);
+  }
+  
+  /* Strategy button title */
+  .strategy-btn strong {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-color);
+    font-weight: var(--font-weight-semibold);
+  }
+  
+  /* Strategy button description */
+  .strategy-btn span {
+    font-size: 0.85rem;
+    color: var(--light-text);
+  }
+  
+  /* Currently selected strategy indication */
+  .strategy-btn.selected {
+    background-color: var(--accent-color);
+    color: white;
+  }
+  
+  .strategy-btn.selected strong,
+  .strategy-btn.selected span {
+    color: white;
+  }
+  
+  /* Strategy icon (for future use) */
+  .strategy-icon {
+    margin-right: 8px;
+    width: 20px;
+    height: 20px;
+    opacity: 0.8;
+  }
+  
+  /* Animations for strategy buttons */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .strategy-btn {
+    animation: fadeInUp 0.3s ease forwards;
+    opacity: 0;
+  }
+  
+  /* Staggered animation delay for each button */
+  .strategy-btn:nth-child(1) { animation-delay: 0.05s; }
+  .strategy-btn:nth-child(2) { animation-delay: 0.1s; }
+  .strategy-btn:nth-child(3) { animation-delay: 0.15s; }
+  .strategy-btn:nth-child(4) { animation-delay: 0.2s; }
+  .strategy-btn:nth-child(5) { animation-delay: 0.25s; }
+  
+  /* Responsive adjustments for mobile */
+  @media (max-width: 768px) {
+    .strategy-btn {
+      padding: 10px 12px;
+    }
+    
+    .strategy-btn span {
+      font-size: 0.8rem;
+    }
+    
+    .strategy-options {
+      margin: 15px 0;
+      gap: 8px;
+    }
+  }

@@ -1,0 +1,205 @@
+/**
+ * Timeline specific styles
+ */
+
+/* Timeline container */
+.timeline-container {
+    position: relative;
+    margin-bottom: var(--spacing-lg);
+    margin-top: 50px;
+    width: 100%;
+  }
+  
+  /* Timeline line (horizontal axis) */
+  .timeline-line {
+    position: absolute;
+    top: 65px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(
+      to right,
+      var(--neumorph-shadow-dark),
+      var(--neumorph-light),
+      var(--neumorph-shadow-dark)
+    );
+    border-radius: 2px;
+    box-shadow: 
+      0 1px 2px var(--neumorph-light),
+      0 -1px 2px var(--neumorph-shadow-dark);
+    z-index: var(--z-index-base);
+  }
+  
+  /* Timeline grid (where blocks are placed) */
+  .timeline-grid {
+    position: relative;
+    height: 150px;
+    width: 100%;
+    z-index: var(--z-index-blocks);
+    padding-top: 40px;
+    margin-top: 10px;
+  }
+  
+  /* Updated styles for timeline */
+  
+  /* Updated hour markers container */
+  .timeline-hours {
+  position: relative;
+  height: 35px; /* Increased from 25px */
+  margin-top: 15px; /* Increased from 10px */
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Updated individual hour marker */
+.hour-marker {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--light-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transform: translateX(-50%);
+  margin-top: -10px; 
+  padding: 6px 8px; /* Add padding around the numbers */
+  border-radius: var(--border-radius-sm);
+  transition: color var(--transition-speed) var(--transition-timing);
+}
+
+.hour-marker:hover {
+  color: var(--text-color);
+}
+
+.hour-marker::before {
+  content: '';
+  height: 8px;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    var(--neumorph-shadow-dark),
+    var(--neumorph-light)
+  );
+  border-radius: 1px;
+  margin-bottom: 8px; /* Increased from 5px */
+}
+  
+  /* Updated hour tick mark */
+  .hour-tick {
+    position: absolute;
+    height: 130px; /* Fixed height */
+    top: 0; /* Align from the top */
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(200, 200, 200, 0.2) 10%,
+      rgba(200, 200, 200, 0.4) 48%,
+      rgba(200, 200, 200, 0.6) 50%,
+      rgba(200, 200, 200, 0.4) 52%,
+      rgba(200, 200, 200, 0.2) 90%,
+      transparent
+    );
+    pointer-events: none;
+  }
+  
+  /* Updated half-hour tick mark */
+  .half-hour-tick {
+    position: absolute;
+    height: 80px; /* Shorter than full hour ticks */
+    top: 25px; /* Position to center on timeline */
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(200, 200, 200, 0.1) 20%,
+      rgba(200, 200, 200, 0.3) 50%,
+      rgba(200, 200, 200, 0.1) 80%,
+      transparent
+    );
+    pointer-events: none;
+  }
+  
+  /* Current time indicator */
+  .current-time-indicator {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--accent-color);
+    z-index: var(--z-index-blocks);
+    pointer-events: none;
+  }
+  
+  .current-time-indicator::after {
+    content: '';
+    position: absolute;
+    top: 65px;
+    left: -4px;
+    width: 10px;
+    height: 10px;
+    background-color: var(--accent-color);
+    border-radius: 50%;
+    transform: translateY(-50%);
+  }
+  
+  .current-time-label {
+    position: absolute;
+    top: 30px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    background-color: var(--accent-color);
+    color: white;
+    border-radius: var(--border-radius-sm);
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  
+  /* Confirmation dialog */
+  .confirm-dialog-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: var(--z-index-modal);
+  }
+  
+  .confirm-dialog {
+    background-color: var(--modal-bg);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 90%;
+    max-width: 400px;
+  }
+  
+  .confirm-dialog p {
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .confirm-dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .timeline-container {
+      margin-top: 30px;
+    }
+    
+    .hour-marker {
+      font-size: 0.75rem;
+    }
+    
+    .hour-marker:nth-child(odd) {
+      display: none;
+    }
+  }

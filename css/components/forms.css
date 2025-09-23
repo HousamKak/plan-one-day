@@ -1,0 +1,117 @@
+/**
+ * CSS Variables - Theme settings and global variables
+ */
+
+ :root {
+    /* Color variables */
+    --bg-color: #f8f9fa;
+    --accent-color: #3a86ff;
+    --text-color: #212529;
+    --light-text: #6c757d;
+    --border-color: #dee2e6;
+    --shadow-color: rgba(0, 0, 0, 0.08);
+    --modal-bg: #ffffff;
+    --error-color: #dc3545;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --timeline-line-color: #e9ecef;
+    
+    /* Neuomorphic design variables */
+    --neumorph-bg: #f0f0f3;
+    --neumorph-light: rgba(255, 255, 255, 0.8);
+    --neumorph-shadow-dark: rgba(209, 217, 230, 0.8);
+    --neumorph-shadow-distance: 5px;
+    --neumorph-border-radius: 10px;
+    --neumorph-inset-shadow-dark: rgba(209, 217, 230, 0.6);
+    --neumorph-inset-shadow-light: rgba(255, 255, 255, 0.5);
+    
+    /* Spacing variables */
+    --spacing-xs: 0.25rem;  /* 4px */
+    --spacing-sm: 0.5rem;   /* 8px */
+    --spacing-md: 1rem;     /* 16px */
+    --spacing-lg: 1.5rem;   /* 24px */
+    --spacing-xl: 2rem;     /* 32px */
+    --spacing-xxl: 3rem;    /* 48px */
+    
+    /* Typography */
+    --font-family: 'Inter', 'Segoe UI', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-size-sm: 0.875rem;  /* 14px */
+    --font-size-md: 1rem;      /* 16px */
+    --font-size-lg: 1.25rem;   /* 20px */
+    --font-size-xl: 1.5rem;    /* 24px */
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --line-height: 1.5;
+    
+    /* Timeline specific variables */
+    --timeline-height: 100px;
+    --hour-width: 50px;
+    --block-height: 75px;
+    --block-border-radius: 6px;
+    --timeline-thickness: 2px;
+    
+    /* Z-index layers */
+    --z-index-base: 1;
+    --z-index-blocks: 2;
+    --z-index-dragging: 10;
+    --z-index-tooltip: 50;
+    --z-index-dropdown: 100;
+    --z-index-context-menu: 200;
+    --z-index-toast: 300;
+    --z-index-modal: 1000;
+    
+    /* Animation speed */
+    --transition-speed-fast: 0.1s;
+    --transition-speed: 0.15s;
+    --transition-speed-slow: 0.3s;
+    --transition-timing: ease;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15);
+    
+    /* Border radius */
+    --border-radius-sm: 4px;
+    --border-radius-md: 6px;
+    --border-radius-lg: 8px;
+    --border-radius-xl: 12px;
+  }
+  
+  /* Dark mode theme - Uncomment and customize to enable dark mode */
+  /*
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-color: #121212;
+      --accent-color: #4d9aff;
+      --text-color: #e0e0e0;
+      --light-text: #a0a0a0;
+      --border-color: #383838;
+      --shadow-color: rgba(0, 0, 0, 0.3);
+      --modal-bg: #1e1e1e;
+      --timeline-line-color: #383838;
+      
+      --neumorph-bg: #1e1e1e;
+      --neumorph-light: rgba(255, 255, 255, 0.05);
+      --neumorph-shadow-dark: rgba(0, 0, 0, 0.6);
+      --neumorph-inset-shadow-dark: rgba(0, 0, 0, 0.5);
+      --neumorph-inset-shadow-light: rgba(255, 255, 255, 0.05);
+    }
+  }
+  */
+  
+  /* Reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --transition-speed-fast: 0;
+      --transition-speed: 0;
+      --transition-speed-slow: 0;
+    }
+    
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }

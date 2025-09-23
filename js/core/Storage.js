@@ -35,10 +35,13 @@ export class Storage {
     if (!localStorage.getItem(this.PRESETS_KEY)) {
       localStorage.setItem(this.PRESETS_KEY, JSON.stringify([]));
     }
-    
+
+    // Create demo profile if it doesn't exist
+    this.createDemoProfileIfNeeded();
+
     // Populate preset select element
     this.updatePresetSelector();
-    
+
     // Load current state if available
     const currentState = localStorage.getItem(this.CURRENT_STATE_KEY);
     if (currentState) {
@@ -50,7 +53,7 @@ export class Storage {
         return null;
       }
     }
-    
+
     return null;
   }
   
@@ -207,6 +210,168 @@ export class Storage {
     document.dispatchEvent(event);
   }
   
+  /**
+   * Creates a demo profile for testing and algorithm showcase if it doesn't exist
+   */
+  createDemoProfileIfNeeded() {
+    const presets = this.getPresets();
+    const demoExists = presets.some(preset => preset.name === '🎯 Demo Profile - Algorithm Testing');
+
+    // Always recreate for now (to update structure if needed)
+    // Remove this condition to only create once: if (!demoExists) {
+    if (true) {
+      const demoProfile = {
+        name: '🎯 Demo Profile - Algorithm Testing',
+        blocks: [
+          {
+            id: 'demo-1',
+            title: 'Morning Meeting',
+            duration: 1,
+            start: 0,
+            color: '#3a86ff'
+          },
+          {
+            id: 'demo-2',
+            title: 'Gym Workout',
+            duration: 1.5,
+            start: 1,
+            color: '#f72585'
+          },
+          {
+            id: 'demo-3',
+            title: 'Project Work',
+            duration: 2,
+            start: 2.5,
+            color: '#7209b7'
+          },
+          {
+            id: 'demo-4',
+            title: 'Quick Call',
+            duration: 0.5,
+            start: 4.5,
+            color: '#560bad'
+          },
+          {
+            id: 'demo-5',
+            title: 'Lunch Break',
+            duration: 1,
+            start: 5,
+            color: '#ff7f00'
+          },
+          {
+            id: 'demo-6',
+            title: 'Read Course Material',
+            duration: 1.5,
+            start: 6,
+            color: '#4cc9f0'
+          },
+          {
+            id: 'demo-7',
+            title: 'Email Processing',
+            duration: 0.75,
+            start: 7.5,
+            color: '#240046'
+          },
+          {
+            id: 'demo-8',
+            title: 'Team Stand-up',
+            duration: 0.5,
+            start: 8.25,
+            color: '#9d4edd'
+          },
+          {
+            id: 'demo-9',
+            title: 'Personal Study',
+            duration: 2,
+            start: 8.75,
+            color: '#06ffa5'
+          },
+          {
+            id: 'demo-10',
+            title: 'Shopping',
+            duration: 1,
+            start: 10.75,
+            color: '#ffb700'
+          },
+          {
+            id: 'demo-11',
+            title: 'Yoga Session',
+            duration: 1,
+            start: 11.75,
+            color: '#fb8500'
+          },
+          {
+            id: 'demo-12',
+            title: 'Family Time',
+            duration: 2,
+            start: 12.75,
+            color: '#8ecae6'
+          },
+          {
+            id: 'demo-13',
+            title: 'Code Review',
+            duration: 1.5,
+            start: 14.75,
+            color: '#219ebc'
+          },
+          {
+            id: 'demo-14',
+            title: 'Running',
+            duration: 0.75,
+            start: 16.25,
+            color: '#023047'
+          },
+          {
+            id: 'demo-15',
+            title: 'Learn JavaScript',
+            duration: 1.25,
+            start: 17,
+            color: '#ffb3c6'
+          },
+          {
+            id: 'demo-16',
+            title: 'Quick Chores',
+            duration: 0.5,
+            start: 18.25,
+            color: '#fb8b24'
+          },
+          {
+            id: 'demo-17',
+            title: 'Client Meeting',
+            duration: 1,
+            start: 18.75,
+            color: '#d62828'
+          },
+          {
+            id: 'demo-18',
+            title: 'Social Call',
+            duration: 0.75,
+            start: 19.75,
+            color: '#fcbf49'
+          }
+        ],
+        isWrappingEnabled: true,
+        allowOverlap: false
+      };
+
+      // Save the demo profile
+      try {
+        const presets = this.getPresets();
+
+        // Remove existing demo profile if it exists
+        const filteredPresets = presets.filter(p => p.name !== '🎯 Demo Profile - Algorithm Testing');
+
+        // Add new demo profile at the beginning
+        filteredPresets.unshift(demoProfile);
+
+        localStorage.setItem(this.PRESETS_KEY, JSON.stringify(filteredPresets));
+        console.log('Demo profile created/updated for algorithm testing');
+      } catch (error) {
+        console.error('Error creating demo profile:', error);
+      }
+    }
+  }
+
   /**
    * Clears all storage data
    */
