@@ -98,6 +98,20 @@ export class ShuffleUIManager {
       });
     });
 
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal);
+      }
+    });
+
+    // Close modal on Escape key
+    modal.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.body.removeChild(modal);
+      }
+    });
+
     // Add to DOM
     document.body.appendChild(modal);
     

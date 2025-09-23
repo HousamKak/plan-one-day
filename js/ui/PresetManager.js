@@ -2,6 +2,7 @@
  * Module for managing timeline presets UI
  */
 import { showToast } from './Toast.js';
+import { showInputDialog, showConfirmDialog } from './Modal.js';
 
 /**
  * Initializes the preset manager UI elements
@@ -48,17 +49,21 @@ export function initPresetManager(timeline, storage) {
  * @param {Object} storage - Storage instance
  */
 function promptForPresetName(timeline, storage) {
-  const presetName = prompt('Enter a name for this preset:');
-  
-  if (presetName && presetName.trim()) {
-    const timelineData = timeline.serialize();
-    
-    if (storage.savePreset(presetName.trim(), timelineData)) {
-      showToast(`Preset "${presetName}" saved`, { type: 'success' });
-    } else {
-      showToast('Error saving preset', { type: 'error' });
+  showInputDialog(
+    'Save Preset',
+    'Enter a name for this preset:',
+    'My Preset',
+    '',
+    (presetName) => {
+      const timelineData = timeline.serialize();
+
+      if (storage.savePreset(presetName, timelineData)) {
+        showToast(`Preset "${presetName}" saved`, { type: 'success' });
+      } else {
+        showToast('Error saving preset', { type: 'error' });
+      }
     }
-  }
+  );
 }
 
 /**
@@ -174,33 +179,36 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     nameSpan.textContent = preset.name;
     item.appendChild(nameSpan);
     
-    // Delete button
-    const deleteButton = document.createElement('button');
-    deleteButton.className = 'preset-delete';
-    deleteButton.setAttribute('aria-label', `Delete preset ${preset.name}`);
-    deleteButton.style.background = 'none';
-    deleteButton.style.border = 'none';
-    deleteButton.style.color = 'var(--error-color)';
-    deleteButton.style.cursor = 'pointer';
-    deleteButton.style.padding = '0.25rem';
-    
-    // Add trash icon
-    const trashTemplate = document.getElementById('trash-icon-template');
-    if (trashTemplate) {
-      const trashIcon = trashTemplate.content.cloneNode(true).querySelector('svg');
-      deleteButton.appendChild(trashIcon);
-    } else {
-      deleteButton.textContent = '🗑️';
+    // Delete button (only show for non-Demo presets)
+    let deleteButton = null;
+    if (preset.name !== 'Demo') {
+      deleteButton = document.createElement('button');
+      deleteButton.className = 'preset-delete';
+      deleteButton.setAttribute('aria-label', `Delete preset ${preset.name}`);
+      deleteButton.style.background = 'none';
+      deleteButton.style.border = 'none';
+      deleteButton.style.color = 'var(--error-color)';
+      deleteButton.style.cursor = 'pointer';
+      deleteButton.style.padding = '0.25rem';
+
+      // Add trash icon
+      const trashTemplate = document.getElementById('trash-icon-template');
+      if (trashTemplate) {
+        const trashIcon = trashTemplate.content.cloneNode(true).querySelector('svg');
+        deleteButton.appendChild(trashIcon);
+      } else {
+        deleteButton.textContent = '🗑️';
+      }
+
+      // Add delete event
+      deleteButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        deletePreset(preset.name, timeline, storage);
+      });
+
+      item.appendChild(deleteButton);
     }
-    
-    // Add delete event
-    deleteButton.addEventListener('click', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      deletePreset(preset.name, timeline, storage);
-    });
-    
-    item.appendChild(deleteButton);
     
     // Add neomorphic hover effect
     item.addEventListener('mouseenter', () => {
@@ -213,7 +221,7 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
     
     // Add click event to load preset
     item.addEventListener('click', (e) => {
-      if (e.target !== deleteButton && !deleteButton.contains(e.target)) {
+      if (!deleteButton || (e.target !== deleteButton && !deleteButton.contains(e.target))) {
         loadPreset(preset.name, timeline, storage);
         customContainer.style.display = 'none';
         presetButton.setAttribute('aria-expanded', 'false');
@@ -227,7 +235,7 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
         loadPreset(preset.name, timeline, storage);
         customContainer.style.display = 'none';
         presetButton.setAttribute('aria-expanded', 'false');
-      } else if (e.key === 'Delete') {
+      } else if (e.key === 'Delete' && preset.name !== 'Demo') {
         e.preventDefault();
         deletePreset(preset.name, timeline, storage);
       }
@@ -267,15 +275,24 @@ function loadPreset(name, timeline, storage) {
  * @param {Object} storage - Storage instance
  */
 function deletePreset(name, timeline, storage) {
-  if (confirm(`Are you sure you want to delete the preset "${name}"?`)) {
-    if (storage.deletePreset(name)) {
-      showToast(`Preset "${name}" deleted`, { type: 'success' });
-      
-      // Update UI immediately after deletion
-      const updatedPresets = storage.getPresets();
-      updatePresetsWithDeleteButtons(updatedPresets, timeline, storage);
-    } else {
-      showToast('Error deleting preset', { type: 'error' });
-    }
+  // Protect the Demo profile from deletion
+  if (name === 'Demo') {
+    showToast('Demo profile cannot be deleted', { type: 'error' });
+    return;
   }
+
+  showConfirmDialog(
+    `Are you sure you want to delete the preset "${name}"?`,
+    () => {
+      if (storage.deletePreset(name)) {
+        showToast(`Preset "${name}" deleted`, { type: 'success' });
+
+        // Update UI immediately after deletion
+        const updatedPresets = storage.getPresets();
+        updatePresetsWithDeleteButtons(updatedPresets, timeline, storage);
+      } else {
+        showToast('Error deleting preset', { type: 'error' });
+      }
+    }
+  );
 }

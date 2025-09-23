@@ -173,6 +173,96 @@ function closeModal(modal) {
 }
 
 /**
+ * Shows an input dialog for text entry
+ * @param {string} title - Dialog title
+ * @param {string} message - Message to display
+ * @param {string} placeholder - Input placeholder text
+ * @param {string} defaultValue - Default input value
+ * @param {Function} onConfirm - Callback for confirmation with input value
+ * @param {Function} onCancel - Callback for cancellation
+ */
+export function showInputDialog(title, message, placeholder = '', defaultValue = '', onConfirm, onCancel = null) {
+  // Create modal element
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.opacity = '0';
+
+  modal.innerHTML = `
+    <div class="modal-content" style="transform: translateY(20px);">
+      <h2>${title}</h2>
+      <p>${message}</p>
+      <div class="form-group">
+        <input type="text" id="input-dialog-text" placeholder="${placeholder}" value="${defaultValue}" required>
+      </div>
+      <div class="form-buttons">
+        <button type="button" class="cancel-btn">Cancel</button>
+        <button type="button" class="submit-btn confirm-btn">Save</button>
+      </div>
+    </div>
+  `;
+
+  // Add to DOM
+  document.body.appendChild(modal);
+
+  // Add fade-in animation
+  setTimeout(() => {
+    modal.style.opacity = '1';
+    modal.querySelector('.modal-content').style.transform = 'translateY(0)';
+  }, 10);
+
+  // Get elements
+  const confirmBtn = modal.querySelector('.confirm-btn');
+  const cancelBtn = modal.querySelector('.cancel-btn');
+  const textInput = modal.querySelector('#input-dialog-text');
+
+  // Focus the input
+  textInput.focus();
+  textInput.select();
+
+  // Add event handlers
+  confirmBtn.addEventListener('click', () => {
+    const value = textInput.value.trim();
+    if (value) {
+      closeModal(modal);
+      if (onConfirm) onConfirm(value);
+    }
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    closeModal(modal);
+    if (onCancel) onCancel();
+  });
+
+  // Handle form submission
+  textInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const value = textInput.value.trim();
+      if (value) {
+        closeModal(modal);
+        if (onConfirm) onConfirm(value);
+      }
+    }
+  });
+
+  // Close on escape key
+  modal.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeModal(modal);
+      if (onCancel) onCancel();
+    }
+  });
+
+  // Close on background click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal(modal);
+      if (onCancel) onCancel();
+    }
+  });
+}
+
+/**
  * Shows a confirmation dialog
  * @param {string} message - Message to display
  * @param {Function} onConfirm - Callback for confirmation

@@ -215,13 +215,13 @@ export class Storage {
    */
   createDemoProfileIfNeeded() {
     const presets = this.getPresets();
-    const demoExists = presets.some(preset => preset.name === '🎯 Demo Profile - Algorithm Testing');
+    const demoExists = presets.some(preset => preset.name === 'Demo');
 
     // Always recreate for now (to update structure if needed)
     // Remove this condition to only create once: if (!demoExists) {
     if (true) {
       const demoProfile = {
-        name: '🎯 Demo Profile - Algorithm Testing',
+        name: 'Demo',
         blocks: [
           {
             id: 'demo-1',
@@ -358,8 +358,8 @@ export class Storage {
       try {
         const presets = this.getPresets();
 
-        // Remove existing demo profile if it exists
-        const filteredPresets = presets.filter(p => p.name !== '🎯 Demo Profile - Algorithm Testing');
+        // Remove existing demo profile if it exists (both old and new names)
+        const filteredPresets = presets.filter(p => p.name !== 'Demo' && p.name !== '🎯 Demo Profile - Algorithm Testing');
 
         // Add new demo profile at the beginning
         filteredPresets.unshift(demoProfile);

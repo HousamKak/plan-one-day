@@ -1,6 +1,7 @@
 import { showToast } from './Toast.js';
 import { initPresetManager } from './PresetManager.js';
 import { ShuffleUIManager } from '../shuffle/ShuffleUIManager.js';
+import { showConfirmDialog } from './Modal.js';
 
 /**
  * Initializes toolbar elements and their event handlers
@@ -27,9 +28,12 @@ export function initToolbar(timeline, storage) {
   
   // Clear button
   clearButton.addEventListener('click', () => {
-    if (confirm('Are you sure you want to clear the timeline?')) {
-      timeline.clearTimeline();
-    }
+    showConfirmDialog(
+      'Are you sure you want to clear the timeline?',
+      () => {
+        timeline.clearTimeline();
+      }
+    );
   });
   
   // Shuffle button (quick shuffle)
