@@ -31,12 +31,16 @@ export class ShuffleManager {
    * @param {string} strategy - The selected strategy
    */
   executeStrategy(strategy) {
+    // Suppress conflict notifications during shuffling
+    this.timeline.suppressConflictNotifications = true;
+
     // Convert blocks to array and filter out locked blocks
     const allBlocks = Array.from(this.timeline.blocks.values());
     const blockArray = allBlocks.filter(block => !block.isLocked);
 
     // If no unlocked blocks, show message and return
     if (blockArray.length === 0) {
+      this.timeline.suppressConflictNotifications = false;
       showToast('No unlocked blocks to shuffle');
       return;
     }
@@ -80,16 +84,16 @@ export class ShuffleManager {
         this.applyRandomStrategy(blockArray);
     }
     
+    // Re-enable conflict notifications
+    this.timeline.suppressConflictNotifications = false;
+
     // Save current state
     this.timeline.saveCurrentState();
-    
+
     // Update label positions after shuffling
     setTimeout(() => {
       this.timeline.updateLabelPositions();
     }, 100);
-    
-    // Show toast notification
-    showToast(`Applied "${this.strategyNameMap[strategy]}" arrangement`);
   }
 
   /**
@@ -135,20 +139,27 @@ export class ShuffleManager {
       while (!placementSuccessful && attempts < maxAttempts) {
         // Check for conflicts with already placed blocks
         let hasConflict = false;
-        
+
         if (!this.timeline.allowOverlap) {
           hasConflict = placedBlocks.some(placedBlock => {
             if (placedBlock.id === block.id) return false;
             return this.timeRangesOverlap(
-              currentStart, 
-              currentStart + block.duration, 
-              placedBlock.start, 
+              currentStart,
+              currentStart + block.duration,
+              placedBlock.start,
               placedBlock.start + placedBlock.duration,
               this.timeline.isWrappingEnabled
             );
           });
         }
-        
+
+        // Check 24-hour boundary if wrap is disabled
+        if (!this.timeline.isWrappingEnabled && currentStart + block.duration > 24) {
+          if (!this.timeline.allowOverlap) {
+            hasConflict = true;
+          }
+        }
+
         if (!hasConflict) {
           // Position is valid, update the block
           block.start = currentStart;
@@ -167,7 +178,15 @@ export class ShuffleManager {
           placementSuccessful = true;
         } else {
           // Try next position
-          currentStart = (currentStart + 0.25) % 24;
+          currentStart = this.timeline.isWrappingEnabled
+            ? (currentStart + 0.25) % 24
+            : currentStart + 0.25;
+
+          // Reset search if we've gone beyond 24 hours in non-wrap mode
+          if (!this.timeline.isWrappingEnabled && currentStart >= 24) {
+            currentStart = 0;
+          }
+
           attempts++;
         }
       }
@@ -201,6 +220,9 @@ export class ShuffleManager {
     if (overflow) {
       showToast('Some blocks were repositioned due to 24-hour limit');
     }
+
+    // Show completion toast
+    showToast('Applied random arrangement with varied gaps');
   }
 
   /**

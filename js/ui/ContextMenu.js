@@ -1,7 +1,7 @@
 /**
  * Module for handling context menus
  */
-import { openBlockModal } from './Modal.js';
+import { openBlockModal, showConfirmDialog } from './Modal.js';
 import { showToast } from './Toast.js';
 
 /**
@@ -217,11 +217,17 @@ function toggleBlockLock(blockId, timeline) {
  * @param {Object} timeline - Timeline instance
  */
 function deleteBlock(blockId, timeline) {
-  if (confirm('Are you sure you want to delete this block?')) {
-    if (timeline.removeBlock(blockId)) {
-      showToast('Block deleted');
-    } else {
-      showToast('Failed to delete block', { type: 'error' });
+  const block = timeline.getBlock(blockId);
+  const blockTitle = block ? block.title : 'this block';
+
+  showConfirmDialog(
+    `Are you sure you want to delete "${blockTitle}"?`,
+    () => {
+      if (timeline.removeBlock(blockId)) {
+        showToast('Block deleted');
+      } else {
+        showToast('Failed to delete block', { type: 'error' });
+      }
     }
-  }
+  );
 }

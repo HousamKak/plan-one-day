@@ -15,18 +15,23 @@ export class Timeline {
     if (!gridElement || !(gridElement instanceof HTMLElement)) {
       throw new TypeError('Timeline requires a valid DOM element for the grid');
     }
-    
+
     this.gridElement = gridElement;
     this.blocks = new Map(); // Map of block id -> Block instance
     this.isWrappingEnabled = false;
-    this.allowOverlap = false;
+    this.allowOverlap = false; // Default to disabled overlap
     this.use24HourFormat = true; // Default to 24-hour format
-    
+
     // Add a flag to track resize operations
     this.isResizeInProgress = false;
     this.resizeGracePeriodTimeout = null;
     this.resizeGracePeriodDuration = 500; // 500ms grace period
-    
+
+    // Track if conflict notification is already shown
+    this.conflictNotificationShown = false;
+
+    // Flag to suppress notifications during batch operations like shuffling
+    this.suppressConflictNotifications = false;
     // Set up click handler for block creation
     this.gridElement.addEventListener('click', this.handleGridClick.bind(this));
     
@@ -107,7 +112,36 @@ export class Timeline {
       timeout = setTimeout(later, wait);
     };
   }
-  
+
+  /**
+   * Shows a single conflict notification, clearing any existing ones first
+   */
+  showConflictNotification() {
+    // Skip if notifications are suppressed (e.g., during shuffling)
+    if (this.suppressConflictNotifications) {
+      return;
+    }
+
+    if (!this.conflictNotificationShown) {
+      // Clear any existing conflict toasts first
+      const existingToasts = document.querySelectorAll('.toast');
+      existingToasts.forEach(toast => {
+        if (toast.textContent === 'Time conflict') {
+          toast.click(); // Trigger removal
+        }
+      });
+
+      // Show new conflict notification
+      showToast('Time conflict', { type: 'warning', duration: 2000 });
+      this.conflictNotificationShown = true;
+
+      // Reset flag after a delay to allow new conflicts to be shown
+      setTimeout(() => {
+        this.conflictNotificationShown = false;
+      }, 2000);
+    }
+  }
+
   /**
    * Gets a block by ID
    * @param {string} id - Block ID
@@ -195,7 +229,7 @@ export class Timeline {
     // Check for conflicts if overlap is not allowed
     if (!this.allowOverlap && this.hasConflict(block)) {
       block.remove();
-      showToast('Time conflict');
+      this.showConflictNotification();
       return null;
     }
     
@@ -242,7 +276,7 @@ export class Timeline {
       testBlock.remove();
       
       if (hasConflict) {
-        showToast('Time conflict');
+        this.showConflictNotification();
         return false;
       }
     }
@@ -457,57 +491,174 @@ export class Timeline {
   }
   
   /**
-   * Shuffles blocks randomly and lays them out sequentially
+   * Places blocks sequentially while respecting constraints
+   * @param {Array} blockArray - Array of blocks to place
+   */
+  placeBlocksSequentially(blockArray) {
+    let currentStart = 0;
+    const placedBlocks = [];
+
+    // Get locked blocks as obstacles
+    const lockedBlocks = Array.from(this.blocks.values())
+      .filter(block => block.isLocked)
+      .map(block => ({ start: block.start, duration: block.duration, id: block.id }));
+
+    for (const block of blockArray) {
+      let placed = false;
+      let attempts = 0;
+      const maxAttempts = this.isWrappingEnabled ? 96 : 48; // More attempts for wrap mode
+      let searchStart = currentStart;
+
+      while (!placed && attempts < maxAttempts) {
+        // Check if position is valid
+        let hasConflict = false;
+
+        if (!this.allowOverlap) {
+          // Check conflicts with both placed blocks and locked blocks
+          const allObstacles = [...placedBlocks, ...lockedBlocks];
+          hasConflict = allObstacles.some(obstacle => {
+            if (obstacle.id === block.id) return false;
+            return this.timeRangesOverlap(
+              searchStart,
+              searchStart + block.duration,
+              obstacle.start,
+              obstacle.start + obstacle.duration
+            );
+          });
+        }
+
+        // Check 24-hour boundary if wrap is disabled
+        if (!this.isWrappingEnabled && searchStart + block.duration > 24) {
+          if (!this.allowOverlap) {
+            hasConflict = true;
+          }
+        }
+
+        if (!hasConflict) {
+          // Position is valid, place the block
+          this.updateBlock(block.id, { start: searchStart });
+          placedBlocks.push({
+            start: searchStart,
+            duration: block.duration,
+            id: block.id
+          });
+          placed = true;
+
+          // Set next starting position
+          currentStart = this.isWrappingEnabled
+            ? (searchStart + block.duration) % 24
+            : Math.min(24, searchStart + block.duration);
+        } else {
+          // Try next position (15-minute increments)
+          searchStart = this.isWrappingEnabled
+            ? (searchStart + 0.25) % 24
+            : searchStart + 0.25;
+
+          // Reset search if we've gone beyond 24 hours in non-wrap mode
+          if (!this.isWrappingEnabled && searchStart >= 24) {
+            searchStart = 0;
+          }
+
+          attempts++;
+        }
+      }
+
+      // If we couldn't place the block, force place it at the current position
+      if (!placed) {
+        this.updateBlock(block.id, { start: currentStart });
+        currentStart = this.isWrappingEnabled
+          ? (currentStart + block.duration) % 24
+          : Math.min(24, currentStart + block.duration);
+      }
+    }
+  }
+
+  /**
+   * Checks if two time ranges overlap
+   * @param {number} start1 - Start time of first range
+   * @param {number} end1 - End time of first range
+   * @param {number} start2 - Start time of second range
+   * @param {number} end2 - End time of second range
+   * @returns {boolean} - True if ranges overlap
+   */
+  timeRangesOverlap(start1, end1, start2, end2) {
+    // Handle wrap-around cases if wrap is enabled
+    if (this.isWrappingEnabled) {
+      // Normalize times to handle wrap-around
+      if (end1 > 24) end1 = end1 % 24;
+      if (end2 > 24) end2 = end2 % 24;
+
+      // Complex wrap-around overlap logic
+      if (start1 < end1 && start2 < end2) {
+        // Neither wraps around midnight
+        return start1 < end2 && start2 < end1;
+      } else if (start1 >= end1 || start2 >= end2) {
+        // One or both wrap around midnight - more complex logic needed
+        return true; // Simplified for now - could be refined
+      }
+    }
+
+    // Simple non-wrapping overlap check
+    return start1 < end2 && start2 < end1;
+  }
+
+  /**
+   * Quick shuffle - randomly picks from available shuffle algorithms
    */
   shuffleBlocks() {
     if (this.blocks.size === 0) return;
+
+    // Available shuffle strategies
+    const strategies = ['random', 'compact', 'spread', 'clustered', 'timeOfDay', 'priority', 'energy', 'balanced', 'theme'];
+
+    // Randomly pick a strategy
+    const randomStrategy = strategies[Math.floor(Math.random() * strategies.length)];
+
+    // Import and use ShuffleManager
+    import('../shuffle/ShuffleManager.js').then(({ ShuffleManager }) => {
+      const shuffleManager = new ShuffleManager(this);
+      shuffleManager.executeStrategy(randomStrategy);
+    }).catch(error => {
+      console.error('Error loading ShuffleManager:', error);
+      // Fallback to simple shuffle if import fails
+      this.simpleShuffle();
+    });
+  }
+
+  /**
+   * Fallback simple shuffle method
+   */
+  simpleShuffle() {
+    if (this.blocks.size === 0) return;
+
+    // Suppress conflict notifications during shuffling
+    this.suppressConflictNotifications = true;
 
     // Convert blocks to array and filter out locked blocks
     const allBlocks = Array.from(this.blocks.values());
     const blockArray = allBlocks.filter(block => !block.isLocked);
 
     // If no unlocked blocks, don't shuffle
-    if (blockArray.length === 0) return;
-    
+    if (blockArray.length === 0) {
+      this.suppressConflictNotifications = false;
+      return;
+    }
+
     // Fisher-Yates shuffle
     for (let i = blockArray.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [blockArray[i], blockArray[j]] = [blockArray[j], blockArray[i]];
     }
-    
-    // Lay out sequentially
-    let currentStart = 0;
-    let overflow = false;
-    
-    for (const block of blockArray) {
-      // Check if block fits within 24 hours if wrap is disabled
-      if (!this.isWrappingEnabled && currentStart + block.duration > 24) {
-        overflow = true;
-        // If overlap is allowed, continue placing blocks beyond 24h
-        if (!this.allowOverlap) {
-          break;
-        }
-      }
-      
-      // Update block position
-      if (this.updateBlock(block.id, { start: currentStart })) {
-        // Move to next position only if update was successful
-        currentStart = (currentStart + block.duration) % 24;
-        if (!this.isWrappingEnabled && !this.allowOverlap) {
-          // For non-wrapping mode without overlap, we use absolute positions
-          currentStart = Math.min(24, currentStart);
-        }
-      }
-    }
-    
-    // Show toast if overflow occurred
-    if (overflow) {
-      showToast('Not enough space - some blocks may not be visible');
-    }
-    
+
+    // Lay out all blocks sequentially with intelligent placement
+    this.placeBlocksSequentially(blockArray);
+
     // Save current state
     this.saveCurrentState();
-    
+
+    // Re-enable conflict notifications
+    this.suppressConflictNotifications = false;
+
     // Update label positions after shuffling
     setTimeout(() => {
       this.updateLabelPositions();
@@ -613,7 +764,7 @@ export class Timeline {
     
     // Set state properties
     this.isWrappingEnabled = data.isWrappingEnabled || false;
-    this.allowOverlap = data.allowOverlap || false;
+    this.allowOverlap = data.allowOverlap || false; // Default to false
     this.use24HourFormat = data.use24HourFormat !== undefined ? data.use24HourFormat : true;
     
     // Dispatch an event to update hour markers

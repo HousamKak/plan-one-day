@@ -567,7 +567,7 @@ export class Block {
         }
         
         // Show toast notification
-        this.timeline.showToast('Time conflict');
+        this.timeline.showConflictNotification();
       } else {
         // Commit the change to timeline
         this.timeline.updateBlock(this.id, { 
@@ -691,7 +691,7 @@ export class Block {
             this.timeline.updateBlock(this.id, { start: this.start });
           } else {
             this.start = this.start + 0.25;
-            this.timeline.showToast('Time conflict');
+            this.timeline.showConflictNotification();
           }
         }
         break;
@@ -705,7 +705,7 @@ export class Block {
           } else {
             this.start = this.start - 0.25;
             if (this.start < 0) this.start += 24;
-            this.timeline.showToast('Time conflict');
+            this.timeline.showConflictNotification();
           }
         }
         break;

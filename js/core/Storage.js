@@ -351,7 +351,7 @@ export class Storage {
           }
         ],
         isWrappingEnabled: true,
-        allowOverlap: false
+        allowOverlap: true
       };
 
       // Save the demo profile
