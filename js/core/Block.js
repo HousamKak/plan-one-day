@@ -51,6 +51,7 @@ export class Block {
     this.start = data.start;
     this.duration = data.duration;
     this.color = data.color;
+    this.isLocked = data.isLocked || false;
     this.timeline = timeline;
     this.isWrappingEnabled = isWrappingEnabled;
     this.use24HourFormat = use24HourFormat;
@@ -116,7 +117,8 @@ export class Block {
     // Update element properties
     this.updatePosition();
     this.element.style.backgroundColor = this.color;
-    
+    this.updateLockVisuals();
+
     return this.element;
   }
   
@@ -423,15 +425,20 @@ export class Block {
   
   /**
    * Handles pointer down event to start dragging
-   * @param {PointerEvent} event 
+   * @param {PointerEvent} event
    */
   handlePointerDown(event) {
+    // Ignore if block is locked
+    if (this.isLocked) {
+      return;
+    }
+
     // Ignore if clicked on resize handle
-    if (event.target.classList.contains('block-resize-handle-left') || 
+    if (event.target.classList.contains('block-resize-handle-left') ||
         event.target.classList.contains('block-resize-handle-right')) {
       return;
     }
-    
+
     event.preventDefault();
     
     this.isDragging = true;
@@ -782,6 +789,64 @@ export class Block {
   }
   
   /**
+   * Toggles the lock state of the block
+   */
+  toggleLock() {
+    this.isLocked = !this.isLocked;
+    this.updateLockVisuals();
+
+    // Don't save state immediately to prevent repositioning
+    // We'll save it later when needed
+    // this.timeline.saveCurrentState();
+
+    return this.isLocked;
+  }
+
+  /**
+   * Sets the lock state of the block
+   * @param {boolean} locked - Whether the block should be locked
+   */
+  setLocked(locked) {
+    this.isLocked = Boolean(locked);
+    this.updateLockVisuals();
+
+    // Save state change
+    this.timeline.saveCurrentState();
+  }
+
+  /**
+   * Updates the visual appearance based on lock state
+   */
+  updateLockVisuals() {
+    if (!this.element) return;
+
+    // Add/remove locked class with minimal CSS for debugging
+    console.log(`About to change lock visual for ${this.title} to ${this.isLocked}`);
+
+    if (this.isLocked) {
+      this.element.classList.add('block-locked');
+      this.element.setAttribute('aria-label', `${this.title} (locked)`);
+    } else {
+      this.element.classList.remove('block-locked');
+      this.element.setAttribute('aria-label', this.title);
+    }
+
+    // Update resize handles
+    const leftHandle = this.element.querySelector('.block-resize-handle-left');
+    const rightHandle = this.element.querySelector('.block-resize-handle-right');
+
+    if (leftHandle && rightHandle) {
+      if (this.isLocked) {
+        leftHandle.style.display = 'none';
+        rightHandle.style.display = 'none';
+      } else {
+        leftHandle.style.display = '';
+        rightHandle.style.display = '';
+      }
+    }
+  }
+
+  /**
    * Serializes the block data
    * @returns {Object} Block data for serialization
    */
@@ -791,7 +856,8 @@ export class Block {
       title: this.title,
       start: this.start,
       duration: this.duration,
-      color: this.color
+      color: this.color,
+      isLocked: this.isLocked
     };
   }
 }

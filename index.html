@@ -26,14 +26,14 @@
     <main>
         <h1 class="app-title">24-Hour Visual Day Planner</h1>
         <div class="toolbar">
-            <button aria-label="Clear timeline" title="Clear timeline" class="btn-clear">
+            <button type="button" aria-label="Clear timeline" title="Clear timeline" class="btn-clear">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span class="tooltip">Clear timeline</span>
             </button>
-            <button aria-label="Shuffle blocks" title="Shuffle blocks" class="btn-shuffle">
+            <button type="button" aria-label="Shuffle blocks" title="Shuffle blocks" class="btn-shuffle">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M16 3H21V8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M4 20L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -43,13 +43,13 @@
                 </svg>
                 <span class="tooltip">Quick shuffle<br>(hold)</span>
             </button>
-            <button aria-label="Shuffle settings" title="Shuffle settings" class="btn-shuffle-settings">
+            <button type="button" aria-label="Shuffle settings" title="Shuffle settings" class="btn-shuffle-settings">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M3 17V19H9V17H3ZM3 5V7H13V5H3ZM13 21V19H21V17H13V15H11V21H13ZM7 9V11H3V13H7V15H9V9H7ZM21 13V11H11V13H21ZM15 9H17V7H21V5H17V3H15V9Z" fill="currentColor"/>
                 </svg>
                 <span class="tooltip">Shuffle settings</span>
             </button>
-            <button aria-label="Toggle wrap-around" title="Toggle wrap-around" class="btn-toggle" id="wrap-toggle" aria-pressed="false">
+            <button type="button" aria-label="Toggle wrap-around" title="Toggle wrap-around" class="btn-toggle" id="wrap-toggle" aria-pressed="false">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17 3H3V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M21 7V21H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -58,7 +58,7 @@
                 <span class="tooltip">Wrap-around</span>
             </button>
 
-            <button aria-label="Toggle allow overlap" title="Toggle allow overlap" class="btn-toggle" id="overlap-toggle" aria-pressed="false">
+            <button type="button" aria-label="Toggle allow overlap" title="Toggle allow overlap" class="btn-toggle" id="overlap-toggle" aria-pressed="false">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="2"/>
                     <circle cx="16" cy="16" r="5" stroke="currentColor" stroke-width="2"/>
@@ -66,7 +66,7 @@
                 <span class="tooltip">Allow overlap</span>
             </button>
 
-            <button aria-label="Toggle time format" title="Toggle time format" class="btn-toggle time-format-btn" id="time-format-toggle" aria-pressed="false">
+            <button type="button" aria-label="Toggle time format" title="Toggle time format" class="btn-toggle time-format-btn" id="time-format-toggle" aria-pressed="false">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
                     <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -76,7 +76,7 @@
             </button>
 
             <div class="preset-controls">
-                <button aria-label="Save preset" title="Save preset" class="btn-save">
+                <button type="button" aria-label="Save preset" title="Save preset" class="btn-save">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M17 21V13H7V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -138,6 +138,7 @@
         <div class="context-menu">
             <button class="edit-block">Edit</button>
             <button class="duplicate-block">Duplicate</button>
+            <button class="toggle-lock">🔒 Lock</button>
             <button class="delete-block">Delete</button>
         </div>
     </template>

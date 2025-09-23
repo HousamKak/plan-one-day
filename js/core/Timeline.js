@@ -218,7 +218,12 @@ export class Timeline {
   updateBlock(id, data) {
     const block = this.blocks.get(id);
     if (!block) return false;
-    
+
+    // Never update locked blocks
+    if (block.isLocked) {
+      return false;
+    }
+
     // Create a temporary copy to check for conflicts
     if (!this.allowOverlap && 
         ((data.start !== undefined && data.start !== block.start) || 
@@ -456,9 +461,13 @@ export class Timeline {
    */
   shuffleBlocks() {
     if (this.blocks.size === 0) return;
-    
-    // Convert blocks to array
-    const blockArray = Array.from(this.blocks.values());
+
+    // Convert blocks to array and filter out locked blocks
+    const allBlocks = Array.from(this.blocks.values());
+    const blockArray = allBlocks.filter(block => !block.isLocked);
+
+    // If no unlocked blocks, don't shuffle
+    if (blockArray.length === 0) return;
     
     // Fisher-Yates shuffle
     for (let i = blockArray.length - 1; i > 0; i--) {

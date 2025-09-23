@@ -34,25 +34,45 @@ export class ShuffleUIManager {
             <strong>Random</strong>
             <span>Completely randomize block order</span>
           </button>
-          
+
           <button class="strategy-btn" data-strategy="compact">
             <strong>Compact</strong>
             <span>Minimize gaps between blocks</span>
           </button>
-          
+
           <button class="strategy-btn" data-strategy="spread">
             <strong>Evenly Distributed</strong>
             <span>Spread blocks throughout the day</span>
           </button>
-          
+
           <button class="strategy-btn" data-strategy="clustered">
             <strong>Clustered</strong>
             <span>Group similar blocks together</span>
           </button>
-          
+
           <button class="strategy-btn" data-strategy="timeOfDay">
             <strong>Time-of-Day Optimized</strong>
             <span>Place blocks in morning/afternoon/evening periods</span>
+          </button>
+
+          <button class="strategy-btn" data-strategy="priority">
+            <strong>Priority-Based</strong>
+            <span>High priority tasks first, then medium, then low</span>
+          </button>
+
+          <button class="strategy-btn" data-strategy="energy">
+            <strong>Energy-Based</strong>
+            <span>High-energy tasks in morning, low-energy later</span>
+          </button>
+
+          <button class="strategy-btn" data-strategy="balanced">
+            <strong>Balanced Variety</strong>
+            <span>Alternates between different task categories</span>
+          </button>
+
+          <button class="strategy-btn" data-strategy="theme">
+            <strong>Theme-Based</strong>
+            <span>Groups work, health, learning, and personal tasks</span>
           </button>
         </div>
         

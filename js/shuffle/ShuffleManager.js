@@ -18,7 +18,11 @@ export class ShuffleManager {
       'compact': 'Compact',
       'spread': 'Evenly Distributed',
       'clustered': 'Clustered',
-      'timeOfDay': 'Time-of-Day Optimized'
+      'timeOfDay': 'Time-of-Day Optimized',
+      'priority': 'Priority-Based',
+      'energy': 'Energy-Based',
+      'balanced': 'Balanced Variety',
+      'theme': 'Theme-Based'
     };
   }
 
@@ -27,9 +31,22 @@ export class ShuffleManager {
    * @param {string} strategy - The selected strategy
    */
   executeStrategy(strategy) {
-    // Convert blocks to array
-    const blockArray = Array.from(this.timeline.blocks.values());
-    
+    // Convert blocks to array and filter out locked blocks
+    const allBlocks = Array.from(this.timeline.blocks.values());
+    const blockArray = allBlocks.filter(block => !block.isLocked);
+
+    // If no unlocked blocks, show message and return
+    if (blockArray.length === 0) {
+      showToast('No unlocked blocks to shuffle');
+      return;
+    }
+
+    // Show message if some blocks are locked
+    const lockedCount = allBlocks.length - blockArray.length;
+    if (lockedCount > 0) {
+      showToast(`Shuffling ${blockArray.length} blocks (${lockedCount} locked)`);
+    }
+
     // Apply the selected strategy
     switch (strategy) {
       case 'random':
@@ -46,6 +63,18 @@ export class ShuffleManager {
         break;
       case 'timeOfDay':
         this.applyTimeOfDayStrategy(blockArray);
+        break;
+      case 'priority':
+        this.applyPriorityStrategy(blockArray);
+        break;
+      case 'energy':
+        this.applyEnergyStrategy(blockArray);
+        break;
+      case 'balanced':
+        this.applyBalancedStrategy(blockArray);
+        break;
+      case 'theme':
+        this.applyThemeStrategy(blockArray);
         break;
       default:
         this.applyRandomStrategy(blockArray);
@@ -73,13 +102,13 @@ export class ShuffleManager {
       const j = Math.floor(Math.random() * (i + 1));
       [blockArray[i], blockArray[j]] = [blockArray[j], blockArray[i]];
     }
-    
+
     // Lay out sequentially with some random gaps
     let currentStart = 0;
     let overflow = false;
-    
-    // Make a copy of blocks to track placed blocks and avoid conflicts
-    const placedBlocks = [];
+
+    // Initialize placed blocks with all locked blocks to treat them as obstacles
+    const placedBlocks = this.getLockedBlocksAsPlaced();
     
     blockArray.forEach((block, index) => {
       // Maybe add a random gap (30% chance)
@@ -123,12 +152,18 @@ export class ShuffleManager {
         if (!hasConflict) {
           // Position is valid, update the block
           block.start = currentStart;
-          placedBlocks.push({
-            id: block.id,
-            start: currentStart,
-            duration: block.duration
-          });
-          this.timeline.updateBlock(block.id, { start: currentStart });
+          // Only add to placed blocks if it's not locked (locked blocks are already in placedBlocks)
+          if (!block.isLocked) {
+            placedBlocks.push({
+              id: block.id,
+              start: currentStart,
+              duration: block.duration
+            });
+          }
+          // Safety check: never move locked blocks
+          if (!block.isLocked) {
+            this.timeline.updateBlock(block.id, { start: currentStart });
+          }
           placementSuccessful = true;
         } else {
           // Try next position
@@ -140,12 +175,18 @@ export class ShuffleManager {
       // If we couldn't place the block after all attempts
       if (!placementSuccessful) {
         // Force placement at original position
-        this.timeline.updateBlock(block.id, { start: originalStart });
-        placedBlocks.push({
-          id: block.id,
-          start: originalStart,
-          duration: block.duration
-        });
+        // Safety check: never move locked blocks
+        if (!block.isLocked) {
+          this.timeline.updateBlock(block.id, { start: originalStart });
+        }
+        // Only add to placed blocks if it's not locked (locked blocks are already in placedBlocks)
+        if (!block.isLocked) {
+          placedBlocks.push({
+            id: block.id,
+            start: originalStart,
+            duration: block.duration
+          });
+        }
         showToast('Some blocks may overlap due to space constraints');
       }
       
@@ -169,9 +210,9 @@ export class ShuffleManager {
   applyCompactStrategy(blockArray) {
     // Sort blocks by duration (longest first for better packing)
     blockArray.sort((a, b) => b.duration - a.duration);
-    
-    // Make a deep copy of blockArray to track placed blocks
-    const placedBlocks = [];
+
+    // Initialize placed blocks with all locked blocks to treat them as obstacles
+    const placedBlocks = this.getLockedBlocksAsPlaced();
     
     // Lay out sequentially with no gaps
     let currentStart = 0;
@@ -227,11 +268,14 @@ export class ShuffleManager {
       this.timeline.updateBlock(block.id, { start: currentStart });
       
       // Add to placed blocks
-      placedBlocks.push({
-        id: block.id,
-        start: currentStart,
-        duration: block.duration
-      });
+      // Only add to placed blocks if it's not locked (locked blocks are already in placedBlocks)
+      if (!block.isLocked) {
+        placedBlocks.push({
+          id: block.id,
+          start: currentStart,
+          duration: block.duration
+        });
+      }
       
       // Move to next position
       currentStart = (currentStart + block.duration) % 24;
@@ -270,10 +314,10 @@ export class ShuffleManager {
       const j = Math.floor(Math.random() * (i + 1));
       [blockArray[i], blockArray[j]] = [blockArray[j], blockArray[i]];
     }
-    
-    // Track placed blocks to handle conflicts
-    const placedBlocks = [];
-    
+
+    // Initialize placed blocks with all locked blocks to treat them as obstacles
+    const placedBlocks = this.getLockedBlocksAsPlaced();
+
     // Distribute blocks evenly
     let currentStart = 0;
     let overflow = false;
@@ -330,14 +374,20 @@ export class ShuffleManager {
       }
       
       // Update block position
-      this.timeline.updateBlock(block.id, { start: attemptedStart });
+      // Safety check: never move locked blocks
+      if (!block.isLocked) {
+        this.timeline.updateBlock(block.id, { start: attemptedStart });
+      }
       
       // Add to placed blocks
-      placedBlocks.push({
-        id: block.id,
-        start: attemptedStart,
-        duration: block.duration
-      });
+      // Only add to placed blocks if it's not locked (locked blocks are already in placedBlocks)
+      if (!block.isLocked) {
+        placedBlocks.push({
+          id: block.id,
+          start: attemptedStart,
+          duration: block.duration
+        });
+      }
       
       // Calculate next position with ideal gap
       currentStart = (attemptedStart + block.duration + idealGapSize) % 24;
@@ -378,9 +428,9 @@ export class ShuffleManager {
     // Flatten all groups into single array
     const orderedBlocks = placementGroups.flat();
     
-    // Track placed blocks to handle conflicts
-    const placedBlocks = [];
-    
+    // Initialize placed blocks with all locked blocks to treat them as obstacles
+    const placedBlocks = this.getLockedBlocksAsPlaced();
+
     // Lay out sequentially with small gaps between categories
     let currentStart = 0;
     let overflow = false;
@@ -455,11 +505,14 @@ export class ShuffleManager {
       this.timeline.updateBlock(block.id, { start: currentStart });
       
       // Add to placed blocks
-      placedBlocks.push({
-        id: block.id,
-        start: currentStart,
-        duration: block.duration
-      });
+      // Only add to placed blocks if it's not locked (locked blocks are already in placedBlocks)
+      if (!block.isLocked) {
+        placedBlocks.push({
+          id: block.id,
+          start: currentStart,
+          duration: block.duration
+        });
+      }
       
       // Move to next position
       currentStart = (currentStart + block.duration) % 24;
@@ -506,9 +559,9 @@ export class ShuffleManager {
     let remainingEveningTime = eveningDuration;
     let remainingNightTime = nightDuration;
     
-    // Track already placed blocks to avoid conflicts later
-    const placedBlocks = [];
-    
+    // Initialize placed blocks with all locked blocks to treat them as obstacles
+    const placedBlocks = this.getLockedBlocksAsPlaced();
+
     // First pass: distribute blocks to periods
     blockArray.forEach(block => {
       // Check if block is too long for any period
@@ -709,11 +762,14 @@ export class ShuffleManager {
       this.timeline.updateBlock(block.id, { start: currentStart });
       
       // Add to placed blocks
-      placedBlocks.push({
-        id: block.id,
-        start: currentStart,
-        duration: block.duration
-      });
+      // Only add to placed blocks if it's not locked (locked blocks are already in placedBlocks)
+      if (!block.isLocked) {
+        placedBlocks.push({
+          id: block.id,
+          start: currentStart,
+          duration: block.duration
+        });
+      }
       
       // Move to next position with gap
       currentStart = currentStart + block.duration + gapSize;
@@ -778,7 +834,7 @@ export class ShuffleManager {
 
   /**
    * Checks for conflicts between a new time block and existing blocks
-   * @param {Array} placedBlocks - Array of already placed blocks
+   * @param {Array} placedBlocks - Array of already placed blocks (including locked blocks)
    * @param {number} start - Start time to check
    * @param {number} duration - Duration to check
    * @param {boolean} wrapEnabled - Whether wrap-around is enabled
@@ -786,9 +842,9 @@ export class ShuffleManager {
    */
   checkForTimeConflicts(placedBlocks, start, duration, wrapEnabled) {
     if (placedBlocks.length === 0) return false;
-    
+
     const end = (start + duration) % 24;
-    
+
     return placedBlocks.some(block => {
       const blockEnd = (block.start + block.duration) % 24;
       return this.timeRangesOverlap(
@@ -907,5 +963,338 @@ export class ShuffleManager {
     
     // If still no spot, start from 0
     return 0;
+  }
+
+  /**
+   * Applies priority-based strategy (high priority tasks first)
+   * @param {Array} blockArray - Array of blocks to arrange
+   */
+  applyPriorityStrategy(blockArray) {
+    // Assign random priorities if blocks don't have them
+    blockArray.forEach(block => {
+      if (!block.priority) {
+        // Randomly assign priority: 30% high, 50% medium, 20% low
+        const rand = Math.random();
+        if (rand < 0.3) block.priority = 'high';
+        else if (rand < 0.8) block.priority = 'medium';
+        else block.priority = 'low';
+      }
+    });
+
+    // Sort by priority: high, medium, low
+    const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
+    blockArray.sort((a, b) => {
+      const aPriority = priorityOrder[a.priority] || 2;
+      const bPriority = priorityOrder[b.priority] || 2;
+      if (aPriority !== bPriority) {
+        return bPriority - aPriority; // High priority first
+      }
+      // Same priority: randomize order
+      return Math.random() - 0.5;
+    });
+
+    this.layoutBlocksSequentially(blockArray, 0.25); // Small gaps between blocks
+    showToast('Applied priority-based arrangement (high → medium → low)');
+  }
+
+  /**
+   * Applies energy-based strategy (high energy in morning, low energy later)
+   * @param {Array} blockArray - Array of blocks to arrange
+   */
+  applyEnergyStrategy(blockArray) {
+    // Assign random energy levels if blocks don't have them
+    blockArray.forEach(block => {
+      if (!block.energy) {
+        // Randomly assign energy: 25% high, 50% medium, 25% low
+        const rand = Math.random();
+        if (rand < 0.25) block.energy = 'high';
+        else if (rand < 0.75) block.energy = 'medium';
+        else block.energy = 'low';
+      }
+    });
+
+    // Define energy time slots
+    const morningSlot = { start: 6, end: 10, preferred: ['high'] };
+    const midMorningSlot = { start: 10, end: 14, preferred: ['high', 'medium'] };
+    const afternoonSlot = { start: 14, end: 18, preferred: ['medium'] };
+    const eveningSlot = { start: 18, end: 22, preferred: ['low', 'medium'] };
+    const slots = [morningSlot, midMorningSlot, afternoonSlot, eveningSlot];
+
+    // Group blocks by energy level
+    const highEnergyBlocks = blockArray.filter(b => b.energy === 'high');
+    const mediumEnergyBlocks = blockArray.filter(b => b.energy === 'medium');
+    const lowEnergyBlocks = blockArray.filter(b => b.energy === 'low');
+
+    const placedBlocks = this.getLockedBlocksAsPlaced();
+
+    // Place high energy blocks in morning slots first
+    this.placeBlocksInSlots(highEnergyBlocks, [morningSlot, midMorningSlot], placedBlocks);
+
+    // Place medium energy blocks in remaining morning/afternoon slots
+    this.placeBlocksInSlots(mediumEnergyBlocks, [midMorningSlot, afternoonSlot, eveningSlot], placedBlocks);
+
+    // Place low energy blocks in afternoon/evening slots
+    this.placeBlocksInSlots(lowEnergyBlocks, [afternoonSlot, eveningSlot], placedBlocks);
+
+    showToast('Applied energy-based arrangement (high energy → morning, low → evening)');
+  }
+
+  /**
+   * Applies balanced strategy (alternates between different types for variety)
+   * @param {Array} blockArray - Array of blocks to arrange
+   */
+  applyBalancedStrategy(blockArray) {
+    // Assign random categories if blocks don't have them
+    const categories = ['work', 'personal', 'health', 'learning', 'social'];
+    blockArray.forEach(block => {
+      if (!block.category) {
+        block.category = categories[Math.floor(Math.random() * categories.length)];
+      }
+    });
+
+    // Group blocks by category
+    const categoryGroups = {};
+    categories.forEach(cat => categoryGroups[cat] = []);
+
+    blockArray.forEach(block => {
+      const cat = block.category || 'personal';
+      if (!categoryGroups[cat]) categoryGroups[cat] = [];
+      categoryGroups[cat].push(block);
+    });
+
+    // Shuffle each category group
+    Object.values(categoryGroups).forEach(group => {
+      for (let i = group.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [group[i], group[j]] = [group[j], group[i]];
+      }
+    });
+
+    // Interleave blocks from different categories
+    const balancedArray = [];
+    const maxLength = Math.max(...Object.values(categoryGroups).map(g => g.length));
+
+    for (let i = 0; i < maxLength; i++) {
+      categories.forEach(cat => {
+        if (categoryGroups[cat][i]) {
+          balancedArray.push(categoryGroups[cat][i]);
+        }
+      });
+    }
+
+    this.layoutBlocksSequentially(balancedArray, 0.5); // Medium gaps for variety
+    showToast('Applied balanced variety arrangement (alternating categories)');
+  }
+
+  /**
+   * Applies theme-based strategy (groups similar task types)
+   * @param {Array} blockArray - Array of blocks to arrange
+   */
+  applyThemeStrategy(blockArray) {
+    // Assign themes based on block titles if not already assigned
+    const workKeywords = ['meeting', 'work', 'project', 'call', 'email', 'office'];
+    const healthKeywords = ['exercise', 'workout', 'gym', 'run', 'yoga', 'health'];
+    const personalKeywords = ['family', 'shopping', 'personal', 'home', 'chores'];
+    const learningKeywords = ['study', 'learn', 'read', 'course', 'training'];
+
+    blockArray.forEach(block => {
+      if (!block.theme) {
+        const title = (block.title || '').toLowerCase();
+        if (workKeywords.some(keyword => title.includes(keyword))) {
+          block.theme = 'work';
+        } else if (healthKeywords.some(keyword => title.includes(keyword))) {
+          block.theme = 'health';
+        } else if (learningKeywords.some(keyword => title.includes(keyword))) {
+          block.theme = 'learning';
+        } else if (personalKeywords.some(keyword => title.includes(keyword))) {
+          block.theme = 'personal';
+        } else {
+          // Random assignment for unclear titles
+          const themes = ['work', 'personal', 'health', 'learning'];
+          block.theme = themes[Math.floor(Math.random() * themes.length)];
+        }
+      }
+    });
+
+    // Group by theme
+    const themeGroups = {
+      work: [],
+      personal: [],
+      health: [],
+      learning: []
+    };
+
+    blockArray.forEach(block => {
+      const theme = block.theme || 'personal';
+      if (themeGroups[theme]) {
+        themeGroups[theme].push(block);
+      } else {
+        themeGroups.personal.push(block); // Default fallback
+      }
+    });
+
+    // Randomize within each theme group
+    Object.values(themeGroups).forEach(group => {
+      for (let i = group.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [group[i], group[j]] = [group[j], group[i]];
+      }
+    });
+
+    // Determine theme order (work typically early, health/personal flexible)
+    const themeOrder = ['work', 'learning', 'health', 'personal'];
+    const orderedBlocks = [];
+
+    themeOrder.forEach(theme => {
+      if (themeGroups[theme].length > 0) {
+        orderedBlocks.push(...themeGroups[theme]);
+      }
+    });
+
+    this.layoutBlocksSequentially(orderedBlocks, 0.75); // Larger gaps between themes
+    showToast('Applied theme-based arrangement (work → learning → health → personal)');
+  }
+
+  /**
+   * Helper method to layout blocks sequentially with specified gap
+   * @param {Array} blockArray - Array of blocks to layout
+   * @param {number} gapSize - Gap size between blocks in hours
+   */
+  layoutBlocksSequentially(blockArray, gapSize = 0) {
+    const placedBlocks = this.getLockedBlocksAsPlaced();
+    let currentStart = 0;
+
+    blockArray.forEach(block => {
+      // Check for conflicts and find valid position
+      let validPosition = this.findValidPosition(placedBlocks, currentStart, block.duration);
+
+      // Update block position
+      // Safety check: never move locked blocks
+      if (!block.isLocked) {
+        // Safety check: never move locked blocks
+        if (!block.isLocked) {
+          this.timeline.updateBlock(block.id, { start: validPosition });
+        }
+      }
+
+      // Add to placed blocks
+      // Only add to placed blocks if it's not locked (locked blocks are already in placedBlocks)
+      if (!block.isLocked) {
+        // Only add to placed blocks if it's not locked (locked blocks are already in placedBlocks)
+        if (!block.isLocked) {
+          placedBlocks.push({
+            id: block.id,
+            start: validPosition,
+            duration: block.duration
+          });
+        }
+      }
+
+      // Move to next position with gap
+      currentStart = (validPosition + block.duration + gapSize) % 24;
+      if (!this.timeline.isWrappingEnabled) {
+        currentStart = Math.min(24, currentStart);
+      }
+    });
+  }
+
+  /**
+   * Helper method to place blocks in preferred time slots
+   * @param {Array} blocks - Blocks to place
+   * @param {Array} preferredSlots - Array of time slots with start/end times
+   * @param {Array} placedBlocks - Already placed blocks to avoid conflicts
+   */
+  placeBlocksInSlots(blocks, preferredSlots, placedBlocks) {
+    blocks.forEach(block => {
+      let placed = false;
+
+      // Try each preferred slot in order
+      for (let slot of preferredSlots) {
+        const slotDuration = slot.end - slot.start;
+        if (block.duration <= slotDuration) {
+          // Try to place within this slot
+          for (let time = slot.start; time <= slot.end - block.duration && !placed; time += 0.25) {
+            if (!this.checkForTimeConflicts(placedBlocks, time, block.duration, this.timeline.isWrappingEnabled)) {
+              // Safety check: never move locked blocks
+              if (!block.isLocked) {
+                this.timeline.updateBlock(block.id, { start: time });
+              }
+              // Only add to placed blocks if it's not locked (locked blocks are already in placedBlocks)
+              if (!block.isLocked) {
+                placedBlocks.push({
+                  id: block.id,
+                  start: time,
+                  duration: block.duration
+                });
+              }
+              placed = true;
+            }
+          }
+        }
+        if (placed) break;
+      }
+
+      // If couldn't place in preferred slots, place anywhere available
+      if (!placed) {
+        const validPosition = this.findValidPosition(placedBlocks, 0, block.duration);
+        // Safety check: never move locked blocks
+      if (!block.isLocked) {
+        // Safety check: never move locked blocks
+        if (!block.isLocked) {
+          this.timeline.updateBlock(block.id, { start: validPosition });
+        }
+      }
+        // Only add to placed blocks if it's not locked (locked blocks are already in placedBlocks)
+        if (!block.isLocked) {
+          placedBlocks.push({
+            id: block.id,
+            start: validPosition,
+            duration: block.duration
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Helper method to find a valid position for a block
+   * @param {Array} placedBlocks - Already placed blocks
+   * @param {number} preferredStart - Preferred start time
+   * @param {number} duration - Block duration
+   * @returns {number} Valid start time
+   */
+  findValidPosition(placedBlocks, preferredStart, duration) {
+    // Try preferred position first
+    if (!this.checkForTimeConflicts(placedBlocks, preferredStart, duration, this.timeline.isWrappingEnabled)) {
+      return preferredStart;
+    }
+
+    // Try positions in 15-minute increments
+    for (let hour = 0; hour < 24; hour += 0.25) {
+      if (!this.checkForTimeConflicts(placedBlocks, hour, duration, this.timeline.isWrappingEnabled)) {
+        if (this.timeline.isWrappingEnabled || hour + duration <= 24) {
+          return hour;
+        }
+      }
+    }
+
+    // Fallback to preferred start (will overlap but still functional)
+    return preferredStart;
+  }
+
+  /**
+   * Gets all locked blocks formatted as placed blocks for conflict detection
+   * @returns {Array} Array of locked blocks in placed block format
+   */
+  getLockedBlocksAsPlaced() {
+    const allBlocks = Array.from(this.timeline.blocks.values());
+    const lockedBlocks = allBlocks.filter(block => block.isLocked);
+
+    return lockedBlocks.map(block => ({
+      id: block.id,
+      start: block.start,
+      duration: block.duration,
+      isLocked: true
+    }));
   }
 }

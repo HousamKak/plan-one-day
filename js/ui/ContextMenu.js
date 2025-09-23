@@ -56,22 +56,38 @@ function showBlockContextMenu(blockId, x, y, timeline) {
   }
   
   const contextMenu = template.content.cloneNode(true).querySelector('.context-menu');
-  
+
+  // Get the block to check its lock state
+  const block = timeline.getBlock(blockId);
+
   // Position the menu
   contextMenu.style.left = `${x}px`;
   contextMenu.style.top = `${y}px`;
-  
+
+  // Update lock button text based on current state
+  const lockButton = contextMenu.querySelector('.toggle-lock');
+  if (block && block.isLocked) {
+    lockButton.textContent = '🔓 Unlock';
+  } else {
+    lockButton.textContent = '🔒 Lock';
+  }
+
   // Add event listeners to buttons
   contextMenu.querySelector('.edit-block').addEventListener('click', () => {
     editBlock(blockId, timeline);
     contextMenu.remove();
   });
-  
+
   contextMenu.querySelector('.duplicate-block').addEventListener('click', () => {
     duplicateBlock(blockId, timeline);
     contextMenu.remove();
   });
-  
+
+  lockButton.addEventListener('click', () => {
+    toggleBlockLock(blockId, timeline);
+    contextMenu.remove();
+  });
+
   contextMenu.querySelector('.delete-block').addEventListener('click', () => {
     deleteBlock(blockId, timeline);
     contextMenu.remove();
@@ -170,6 +186,28 @@ function duplicateBlock(blockId, timeline) {
     showToast('Block duplicated', { type: 'success' });
   } else {
     showToast('Failed to duplicate block', { type: 'error' });
+  }
+}
+
+/**
+ * Toggles the lock state of a block
+ * @param {string} blockId - Block ID
+ * @param {Object} timeline - Timeline instance
+ */
+function toggleBlockLock(blockId, timeline) {
+  const block = timeline.getBlock(blockId);
+  if (!block) {
+    showToast('Block not found', { type: 'error' });
+    return;
+  }
+
+  const wasLocked = block.isLocked;
+  block.toggleLock();
+
+  if (block.isLocked && !wasLocked) {
+    showToast(`"${block.title}" locked`, { type: 'success' });
+  } else if (!block.isLocked && wasLocked) {
+    showToast(`"${block.title}" unlocked`, { type: 'success' });
   }
 }
 
