@@ -461,33 +461,167 @@ export class Timeline {
   }
   
   /**
-   * Updates the positions of all label arrows to avoid overlaps
+   * Updates the positions of all label arrows to avoid overlaps using mathematical optimization
    */
   updateLabelPositions() {
     // Get all visible label arrows
     const labels = Array.from(this.gridElement.querySelectorAll('.label-arrow'))
       .filter(label => label.style.display !== 'none');
-    
-    if (labels.length <= 1) return; // No need for collision detection with 0 or 1 label
-    
-    // Sort labels by their horizontal position (left to right)
-    const sortedLabels = labels.sort((a, b) => {
-      const aRect = a.getBoundingClientRect();
-      const bRect = b.getBoundingClientRect();
-      return aRect.left - bRect.left;
-    });
-    
-    // Assign alternating positions (top/bottom)
-    sortedLabels.forEach((label, index) => {
+
+    if (labels.length === 0) return;
+
+    // If only one label, position it on top
+    if (labels.length === 1) {
+      const blockId = labels[0].getAttribute('data-block-id');
+      const block = this.blocks.get(blockId);
+      if (block) {
+        block.positionLabel({ position: 'top' });
+      }
+      return;
+    }
+
+    // Create label data structures with all necessary information
+    const labelData = labels.map(label => {
       const blockId = label.getAttribute('data-block-id');
       const block = this.blocks.get(blockId);
-      
-      if (block) {
-        // Simple alternating pattern - even indices go top, odd go bottom
-        const position = index % 2 === 0 ? 'top' : 'bottom';
-        block.positionLabel({ position });
+
+      if (!block) return null;
+
+      const blockRect = block.element.getBoundingClientRect();
+      const gridRect = this.gridElement.getBoundingClientRect();
+
+      // Calculate the natural center position of the block
+      const blockCenter = blockRect.left + (blockRect.width / 2) - gridRect.left;
+
+      return {
+        element: label,
+        block: block,
+        blockId: blockId,
+        blockCenter: blockCenter,
+        blockLeft: blockRect.left - gridRect.left,
+        blockRight: blockRect.right - gridRect.left,
+        blockTop: blockRect.top - gridRect.top,
+        blockBottom: blockRect.bottom - gridRect.top,
+        position: null, // Will be assigned
+        labelWidth: 0,
+        labelHeight: 0
+      };
+    }).filter(data => data !== null);
+
+    // Measure label dimensions
+    labelData.forEach(data => {
+      const rect = data.element.getBoundingClientRect();
+      data.labelWidth = rect.width;
+      data.labelHeight = rect.height;
+    });
+
+    // Sort labels by horizontal position (left to right)
+    labelData.sort((a, b) => a.blockCenter - b.blockCenter);
+
+    // Use greedy algorithm with collision detection to assign positions
+    this.assignOptimalPositions(labelData);
+
+    // Apply the calculated positions
+    labelData.forEach(data => {
+      data.block.positionLabel({ position: data.position });
+    });
+  }
+
+  /**
+   * Assigns optimal positions to labels using collision detection
+   * @param {Array} labelData - Array of label data objects
+   */
+  assignOptimalPositions(labelData) {
+    const HORIZONTAL_PADDING = 20; // Minimum horizontal space between labels
+    const VERTICAL_OFFSET = 20; // Distance from block to label
+
+    // Track occupied regions for top and bottom
+    const topRegions = [];
+    const bottomRegions = [];
+
+    labelData.forEach((data, index) => {
+      // Calculate the horizontal bounds of this label when centered over its block
+      const labelLeft = data.blockCenter - (data.labelWidth / 2);
+      const labelRight = data.blockCenter + (data.labelWidth / 2);
+
+      // Check for collisions in top position
+      const topCollision = this.checkRegionCollision(
+        topRegions,
+        labelLeft - HORIZONTAL_PADDING,
+        labelRight + HORIZONTAL_PADDING
+      );
+
+      // Check for collisions in bottom position
+      const bottomCollision = this.checkRegionCollision(
+        bottomRegions,
+        labelLeft - HORIZONTAL_PADDING,
+        labelRight + HORIZONTAL_PADDING
+      );
+
+      // Choose position based on collisions
+      if (!topCollision && !bottomCollision) {
+        // No collisions - prefer top for visual consistency
+        data.position = 'top';
+        topRegions.push({ left: labelLeft, right: labelRight });
+      } else if (!topCollision) {
+        // Only top is free
+        data.position = 'top';
+        topRegions.push({ left: labelLeft, right: labelRight });
+      } else if (!bottomCollision) {
+        // Only bottom is free
+        data.position = 'bottom';
+        bottomRegions.push({ left: labelLeft, right: labelRight });
+      } else {
+        // Both have collisions - use alternating pattern as fallback
+        // But choose the one with less severe collision
+        const topOverlap = this.calculateTotalOverlap(topRegions, labelLeft, labelRight);
+        const bottomOverlap = this.calculateTotalOverlap(bottomRegions, labelLeft, labelRight);
+
+        if (topOverlap <= bottomOverlap) {
+          data.position = 'top';
+          topRegions.push({ left: labelLeft, right: labelRight });
+        } else {
+          data.position = 'bottom';
+          bottomRegions.push({ left: labelLeft, right: labelRight });
+        }
       }
     });
+  }
+
+  /**
+   * Checks if a region collides with any existing regions
+   * @param {Array} regions - Array of occupied regions
+   * @param {number} left - Left bound of new region
+   * @param {number} right - Right bound of new region
+   * @returns {boolean} - True if collision detected
+   */
+  checkRegionCollision(regions, left, right) {
+    return regions.some(region => {
+      // Check if ranges overlap
+      return (left < region.right && right > region.left);
+    });
+  }
+
+  /**
+   * Calculates total overlap with existing regions
+   * @param {Array} regions - Array of occupied regions
+   * @param {number} left - Left bound of new region
+   * @param {number} right - Right bound of new region
+   * @returns {number} - Total overlap amount
+   */
+  calculateTotalOverlap(regions, left, right) {
+    let totalOverlap = 0;
+
+    regions.forEach(region => {
+      if (left < region.right && right > region.left) {
+        // Calculate overlap amount
+        const overlapStart = Math.max(left, region.left);
+        const overlapEnd = Math.min(right, region.right);
+        totalOverlap += (overlapEnd - overlapStart);
+      }
+    });
+
+    return totalOverlap;
   }
   
   /**

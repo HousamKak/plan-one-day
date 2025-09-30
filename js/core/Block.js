@@ -342,7 +342,7 @@ export class Block {
   }
   
   /**
-   * Positions the label arrow with top/bottom alternating strategy
+   * Positions the label arrow with precise mathematical positioning
    * @param {Object} options - Positioning options
    * @param {string} options.position - 'top' or 'bottom' position
    */
@@ -361,17 +361,29 @@ export class Block {
     const gridRect = this.timeline.gridElement.getBoundingClientRect();
     const blockRect = this.element.getBoundingClientRect();
 
+    // Calculate block center point (where arrow should connect to the block)
+    const blockCenterX = blockRect.left + (blockRect.width / 2) - gridRect.left;
+    const blockCenterY = position === 'top'
+      ? blockRect.top - gridRect.top  // Top of block for top labels
+      : blockRect.bottom - gridRect.top; // Bottom of block for bottom labels
+
     if (position === 'bottom') {
-      // Position below the block with a fixed offset
+      // Position below the block with precise offset
       this.labelArrow.style.bottom = 'auto'; // Clear bottom position
       this.labelArrow.style.top = `${blockRect.bottom - gridRect.top + 20}px`; // 20px below the block
       this.labelArrow.classList.add('label-arrow-bottom');
     } else {
-      // Position above the block with a fixed offset
+      // Position above the block with precise offset
       this.labelArrow.style.top = 'auto'; // Clear top position
       this.labelArrow.style.bottom = `${gridRect.bottom - blockRect.top + 20}px`; // 20px above the block
       this.labelArrow.classList.add('label-arrow-top');
     }
+
+    // Store connection point for arrow calculations
+    this._arrowConnectionPoint = {
+      block: { x: blockCenterX, y: blockCenterY },
+      position: position
+    };
 
     // Create a lighter version of the block color for the label
     const lighterColor = this.adjustColorBrightness(this.color, 15); // Make 15% lighter

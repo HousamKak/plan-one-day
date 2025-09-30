@@ -1,0 +1,341 @@
+/**
+ * Tasks panel styles - Apple-style minimalist hidden panel
+ */
+
+.tasks-panel {
+  position: fixed;
+  right: -180px; /* Fully hidden, only tab visible */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 180px;
+  max-height: 50vh;
+  display: flex;
+  z-index: 100;
+  transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Apple-style easing */
+}
+
+/* Show panel on hover or when pinned */
+.tasks-panel:hover,
+.tasks-panel.pinned {
+  right: 0;
+}
+
+/* Tab that's always visible - just the icon */
+.tasks-panel-tab {
+  position: absolute;
+  left: -32px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  border: none;
+  border-radius: 10px 0 0 10px;
+  box-shadow: -2px 0 6px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 1;
+}
+
+.tasks-panel-tab:hover {
+  background: rgba(255, 255, 255, 0.8);
+  color: rgba(0, 0, 0, 0.6);
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.08);
+  width: 36px;
+}
+
+.tasks-panel-tab svg {
+  pointer-events: none;
+  width: 14px;
+  height: 14px;
+}
+
+/* Main panel content */
+.tasks-panel-content {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(30px);
+  border-radius: 12px 0 0 12px;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Panel header with count and pin */
+.tasks-panel-header {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.tasks-panel-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.5px;
+}
+
+.tasks-panel-pin {
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
+}
+
+.tasks-panel-pin:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.tasks-panel.pinned .tasks-panel-pin {
+  color: #007AFF; /* Apple blue */
+  background: rgba(0, 122, 255, 0.1);
+}
+
+/* Tasks list */
+.tasks-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Custom scrollbar for webkit browsers */
+.tasks-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tasks-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tasks-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+
+.tasks-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Minimalist task item - like a note */
+.task-item {
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  cursor: pointer;
+  border-left: 3px solid;
+  position: relative;
+}
+
+.task-item:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: scale(1.02);
+}
+
+.task-item-title {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+/* Empty state */
+.tasks-list-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .tasks-panel-tab {
+    background: rgba(40, 40, 45, 0.6);
+    color: rgba(255, 255, 255, 0.5);
+    box-shadow: -2px 0 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .tasks-panel-tab:hover {
+    background: rgba(50, 50, 55, 0.8);
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .tasks-panel-content {
+    background: rgba(40, 40, 45, 0.7);
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .tasks-panel-header {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .tasks-panel-count {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .tasks-panel-pin {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .tasks-panel-pin:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .tasks-panel.pinned .tasks-panel-pin {
+    color: #0A84FF; /* Apple blue for dark mode */
+    background: rgba(10, 132, 255, 0.2);
+  }
+
+  .tasks-list {
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  }
+
+  .tasks-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .tasks-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .task-item {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .task-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .task-item-title {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .tasks-list-empty {
+    color: rgba(255, 255, 255, 0.4);
+  }
+}
+
+body.dark-mode .tasks-panel-tab {
+  background: rgba(40, 40, 45, 0.6);
+  color: rgba(255, 255, 255, 0.5);
+  box-shadow: -2px 0 6px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .tasks-panel-tab:hover {
+  background: rgba(50, 50, 55, 0.8);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.dark-mode .tasks-panel-content {
+  background: rgba(40, 40, 45, 0.7);
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .tasks-panel-header {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .tasks-panel-count {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+body.dark-mode .tasks-panel-pin {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+body.dark-mode .tasks-panel-pin:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+body.dark-mode .tasks-panel.pinned .tasks-panel-pin {
+  color: #0A84FF;
+  background: rgba(10, 132, 255, 0.2);
+}
+
+body.dark-mode .tasks-list {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+body.dark-mode .tasks-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+body.dark-mode .tasks-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+body.dark-mode .task-item {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .task-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+body.dark-mode .task-item-title {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+body.dark-mode .tasks-list-empty {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tasks-panel {
+    width: 160px;
+    right: -160px;
+  }
+
+  .tasks-panel-tab {
+    width: 28px;
+    height: 50px;
+    left: -28px;
+  }
+
+  .tasks-panel-tab svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .task-item {
+    padding: 6px 10px;
+  }
+
+  .task-item-title {
+    font-size: 0.75rem;
+  }
+}
+
+/* Hide on very small screens */
+@media (max-width: 480px) {
+  .tasks-panel {
+    display: none;
+  }
+}

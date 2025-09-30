@@ -253,15 +253,20 @@ function updatePresetsWithDeleteButtons(presets, timeline, storage) {
  */
 function loadPreset(name, timeline, storage) {
   const presetData = storage.loadPreset(name);
-  
+
   if (presetData) {
     timeline.deserialize(presetData);
-    
+
     // Update toggle states to match loaded preset
     document.getElementById('wrap-toggle').setAttribute('aria-pressed', presetData.isWrappingEnabled ? 'true' : 'false');
     document.getElementById('overlap-toggle').setAttribute('aria-pressed', presetData.allowOverlap ? 'true' : 'false');
     document.getElementById('time-format-toggle').setAttribute('aria-pressed', !presetData.use24HourFormat ? 'true' : 'false');
-    
+
+    // Dispatch event to notify other components that preset was loaded
+    document.dispatchEvent(new CustomEvent('preset:loaded', {
+      detail: { name, presetData }
+    }));
+
     showToast(`Preset "${name}" loaded`, { type: 'success' });
   } else {
     showToast('Error loading preset', { type: 'error' });

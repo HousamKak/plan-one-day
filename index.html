@@ -25,6 +25,29 @@
     
     <main>
         <h1 class="app-title">24-Hour Visual Day Planner</h1>
+
+        <!-- Tasks Panel -->
+        <aside class="tasks-panel" id="tasks-panel">
+            <button class="tasks-panel-tab" aria-label="Toggle tasks panel">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="tasks-panel-content">
+                <div class="tasks-panel-header">
+                    <span class="tasks-panel-count" id="tasks-count">0</span>
+                    <button class="tasks-panel-pin" id="tasks-pin" aria-label="Pin panel">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M16 3V7C16 8.10457 16.8954 9 18 9H21M16 3L21 8M16 3H8C6.89543 3 6 3.89543 6 5V8M21 8V19C21 20.1046 20.1046 21 19 21H8M8 8L3 13M8 8V21M3 13H8M3 13V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="tasks-list" id="tasks-list">
+                    <!-- Tasks will be populated here -->
+                </div>
+            </div>
+        </aside>
+
         <div class="toolbar">
             <button type="button" aria-label="Clear timeline" title="Clear timeline" class="btn-clear">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

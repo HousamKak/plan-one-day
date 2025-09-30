@@ -8,6 +8,7 @@ import { initToolbar } from './ui/Toolbar.js';
 import { initTimelineUI } from './ui/TimelineUI.js';
 import { setupModalKeyboardHandling } from './ui/Modal.js';
 import { initBackground } from './ui/background.js';
+import { initTasksPanel } from './ui/TasksPanel.js';
 
 /**
  * Initialize the application
@@ -24,7 +25,8 @@ function init() {
   initTimelineUI(timeline);
   initToolbar(timeline, storage);
   setupModalKeyboardHandling();
-  
+  initTasksPanel(timeline);
+
   // Initialize background images and dark mode toggle
   initBackground(['image.png', 'image2.webp', 'image3.jpg', 'image4.jpg', 'image5.webp']);
   
